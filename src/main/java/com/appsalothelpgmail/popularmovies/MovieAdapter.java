@@ -1,0 +1,71 @@
+package com.appsalothelpgmail.popularmovies;
+
+
+import android.content.Context;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
+
+public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder>{
+
+    //Todo: remove all tags
+    private final String TAG = MovieAdapter.class.toString();
+
+
+    private String mImageLink;
+    private MovieObject[] mMovieData;
+    private MovieItemClickListener mMovieItemClickListener;
+
+    public MovieAdapter (MovieObject[] movieData, MovieItemClickListener movieItemClickListener){
+        mMovieData = movieData;
+        mMovieItemClickListener = movieItemClickListener;
+    }
+
+    @Override
+    public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View movieLayout = inflater.inflate(R.layout.grid_item, parent, false);
+
+        MovieViewHolder movieViewHolder = new MovieViewHolder(movieLayout);
+        return movieViewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(MovieViewHolder holder, int position) {
+        if(mMovieData[position].getImageURL().isEmpty()) Log.i(TAG, "Empty image URL at position" + position);
+         else Picasso.get().load(mMovieData[position].getImageURL()).into(holder.mMovieImageView);
+    }
+
+    @Override
+    public int getItemCount() {
+        if(mMovieData == null) return 0;
+        else return mMovieData.length;
+    }
+
+    class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+        private ImageView mMovieImageView;
+
+        public MovieViewHolder(View viewGroup){
+            super(viewGroup);
+
+            mMovieImageView = viewGroup.findViewById(R.id.iv_list_item);
+            viewGroup.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            int clickedPos = getAdapterPosition();
+            mMovieItemClickListener.onMovieItemClick(clickedPos);
+        }
+    }
+
+    public interface MovieItemClickListener{
+        void onMovieItemClick(int clickedItemIndex);
+    }
+}
