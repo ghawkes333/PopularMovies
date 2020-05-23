@@ -6,12 +6,12 @@ import com.appsalothelpgmail.popularmovies.BuildConfig;
 public class TMDbValues {
     public final static String API_KEY = BuildConfig.API_KEY;
 
-    private final static String TMDB_BASE_IMAGE_URL = "http://image.tmdb.org/t/p/";
+    private final static String TMDB_BASE_IMAGE_URL = "https://image.tmdb.org/t/p/";
     private final static String TMDB_SIZE = "w185";
     public final static String TMDB_IMAGE_URL = TMDB_BASE_IMAGE_URL + TMDB_SIZE;
 
 
-    public final static String TMDB_BASE_URL = "http://api.themoviedb.org/3/movie/";
+    public final static String TMDB_BASE_URL = "https://api.themoviedb.org/3/movie/";
     public final static String TMDB_POPULAR = "popular";
     public final static String TMDB_TOP_RATED = "top_rated";
     public final static String TMDB_API_PARAM = "?api_key=";
