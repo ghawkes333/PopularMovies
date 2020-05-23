@@ -2,7 +2,6 @@ package com.appsalothelpgmail.popularmovies;
 
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +10,11 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder>{
 
-    //Todo: remove all tags
     private final String TAG = MovieAdapter.class.toString();
-
-
     private String mImageLink;
     private MovieObject[] mMovieData;
     private MovieItemClickListener mMovieItemClickListener;

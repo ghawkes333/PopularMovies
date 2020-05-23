@@ -1,7 +1,10 @@
-package com.appsalothelpgmail.popularmovies.Utils;
+package com.appsalothelpgmail.popularmovies.Network;
+
+
+import com.appsalothelpgmail.popularmovies.BuildConfig;
 
 public class TMDbValues {
-    public final static String API_KEY = "c901c825d26b844b00e2edbd97ffe72d";
+    public final static String API_KEY = BuildConfig.API_KEY;
 
     private final static String TMDB_BASE_IMAGE_URL = "http://image.tmdb.org/t/p/";
     private final static String TMDB_SIZE = "w185";
