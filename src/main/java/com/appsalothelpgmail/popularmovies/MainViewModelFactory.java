@@ -9,11 +9,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-public class MovieViewModelFactory extends ViewModelProvider.NewInstanceFactory {
+public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     private MovieDatabase mDb;
     private LiveData<List<MovieObject>> mMovie;
 
-    public MovieViewModelFactory(MovieDatabase db){
+    public MainViewModelFactory(MovieDatabase db){
         mDb = db;
         mMovie = db.movieDao().queryEntireDatabase();
 
