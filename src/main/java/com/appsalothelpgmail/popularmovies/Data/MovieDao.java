@@ -16,6 +16,9 @@ public interface MovieDao {
     @Query("SELECT * FROM movies")
     LiveData<List<MovieObject>> queryEntireDatabase();
 
+    @Query("SELECT * FROM movies WHERE _ID = :id")
+    LiveData<MovieObject> queryMovie(int id);
+
     @Query("SELECT EXISTS (SELECT * FROM movies WHERE _ID = :id)")
     boolean existsInDatabase(int id);
 
