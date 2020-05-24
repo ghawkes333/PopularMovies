@@ -3,6 +3,7 @@ package com.appsalothelpgmail.popularmovies;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,11 +61,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     private void setUpLiveData(){
-        MovieViewModelFactory factory = new MovieViewModelFactory(mDb);
+        MainViewModelFactory factory = new MainViewModelFactory(mDb);
         MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
             viewModel.getMovieObjects().observe(MainActivity.this, new Observer<List<MovieObject>>() {
                 @Override
                 public void onChanged(List<MovieObject> movieObjects) {
+                    Log.d("MainActivity", movieObjects.toString());
                     mMovieData = movieObjects;
                     mMovieAdapter.setMovieData(mMovieData);
                 }
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 @Override
                 public void onResponse(JSONObject response) {
                     mMovieData = JSONUtils.parseJSON(response);
-                    mMovieRecycler.setAdapter(new MovieAdapter(mMovieData, MainActivity.this));
+                    mMovieAdapter.setMovieData(mMovieData);
 
                 }
             }, error -> error.printStackTrace());
@@ -103,14 +105,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     }
 
-    private void getAllMoviesInBackground(){
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                mDb.movieDao().queryEntireDatabase();
-            }
-        });
-    }
+
 
 
     //Adapted from https://stackoverflow.com/questions/1016896/how-to-get-screen-dimensions-as-pixels-in-android
@@ -138,14 +133,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
 
+
+
     @Override
     public void onMovieItemClick(int clickedItemIndex) {
-        if(mMovieData != null && mMovieData.get(clickedItemIndex) != null){
-            Intent intentToDetails = new Intent(MainActivity.this, DetailActivity.class);
-//            intentToDetails.putExtra(Intent.EXTRA_INTENT, mMovieData[clickedItemIndex]);
-            startActivity(intentToDetails);
+        Log.d("MainActivity", mMovieData.toString());
 
-        }
+        int id = mMovieData.get(clickedItemIndex).getId();
+        Intent intentToDetails = new Intent(MainActivity.this, DetailActivity.class);
+        intentToDetails.putExtra("KEY", id);
+        startActivity(intentToDetails);
+
+
     }
 
 

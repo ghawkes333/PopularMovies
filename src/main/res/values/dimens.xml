@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="grid_item_length">100dp</dimen>
-    <dimen name="grid_item_margin">16dp</dimen>
+    <!--General dimens-->
     <dimen name="vertical_margin">32dp</dimen>
     <dimen name="horizontal_margin">16dp</dimen>
+    <dimen name="double_margin">32dp</dimen>
+
+    <!--Text sizes-->
+    <dimen name="text_size_extra_small">12sp</dimen>
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_medium">20sp</dimen>
+    <dimen name="text_size_large">32sp</dimen>
+    <dimen name="text_size_extra_large">48sp</dimen>
+
+    <!--Main Activity dimens-->
+    <dimen name="grid_item_length">100dp</dimen>
+    <dimen name="grid_item_margin">16dp</dimen>
+
+    <!--Details Activity dimens-->
+    <dimen name="trailer_height">100dp</dimen>
+    <dimen name="play_button_size">64dp</dimen>
+    <dimen name="vertical_margin_thin">16dp</dimen>
+
+
 </resources>
