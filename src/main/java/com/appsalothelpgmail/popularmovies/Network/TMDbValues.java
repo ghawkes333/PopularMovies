@@ -15,6 +15,9 @@ public class TMDbValues {
     public final static String TMDB_POPULAR = "popular";
     public final static String TMDB_TOP_RATED = "top_rated";
     public final static String TMDB_API_PARAM = "?api_key=";
+    public final static String TMDB_VIDEO_PARAM = "/videos";
+    public final static String TMDB_REVIEWS_PARAM = "/reviews";
+
 
 
     public final static String TMDB_RESPONSE_MOVIE_ID = "id";
@@ -24,4 +27,9 @@ public class TMDbValues {
     public final static String TMDB_RESPONSE_PLOT = "overview";
     public final static String TMDB_RESPONSE_MOVIE_IMAGE_PATH = "poster_path";
     public final static String TMDB_RESPONSE_RESULTS = "results";
+    public final static String TMDB_RESPONSE_KEY = "key";
+    public final static String TMDB_RESPONSE_SITE = "site";
+    public final static String TMDB_RESPONSE_CONTENT = "content";
+
+    public final static String YOUTUBE_BASE_URL = "https://www.youtube.com/watch?v=";
 }
