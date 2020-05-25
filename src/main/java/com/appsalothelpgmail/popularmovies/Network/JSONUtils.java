@@ -66,7 +66,7 @@ public class JSONUtils {
         return liveData;
     }
 
-    public static LiveData<String[]> parseReviews(JSONObject object) throws JSONException{
+    public static LiveData<ArrayList<String>> parseReviews(JSONObject object) throws JSONException{
         JSONArray array = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
         ArrayList<String> reviews = new ArrayList<String>();
         for(int i = 0; i < array.length(); i++){
@@ -75,13 +75,13 @@ public class JSONUtils {
 
         }
 
-        String[] strings = (String[]) reviews.toArray();
-        MutableLiveData<String[]> liveData = new MutableLiveData<String[]>();
-        liveData.setValue(strings);
+
+        MutableLiveData<ArrayList<String>> liveData = new MutableLiveData<ArrayList<String>>();
+        liveData.setValue(reviews);
         return liveData;
     }
 
-    public static LiveData<String[]> parseVideos(JSONObject object) throws JSONException{
+    public static LiveData<ArrayList<String>> parseVideos(JSONObject object) throws JSONException{
         JSONArray array = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
         ArrayList<String> videos = new ArrayList<String>();
         for(int i = 0; i < array.length(); i++){
@@ -90,9 +90,8 @@ public class JSONUtils {
             }
         }
 
-        String[] strings = (String[]) videos.toArray();
-        MutableLiveData<String[]> liveData = new MutableLiveData<String[]>();
-        liveData.setValue(strings);
+        MutableLiveData<ArrayList<String>> liveData = new MutableLiveData<ArrayList<String>>();
+        liveData.setValue(videos);
         return liveData;
     }
 }

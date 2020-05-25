@@ -15,15 +15,14 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.Network.JSONUtils;
+import com.appsalothelpgmail.popularmovies.Network.NetworkUtils;
 import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,6 +33,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private RecyclerView mMovieRecycler;
     private MovieAdapter mMovieAdapter;
     private MovieDatabase mDb;
+    public static final String STATE_FAVORITE = "favorite";
+    public static final String STATE_NETWORK = "network";
+    public static String CURRENT_STATE;
 
     //The current sort criteria, either Popular or Top Rated
     private boolean isPopularSort = false;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         mDb = MovieDatabase.getInstance(this);
         mMovieAdapter = new MovieAdapter(mMovieData, this);
-
+        CURRENT_STATE = STATE_FAVORITE;
 
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, getNumColumns());
@@ -61,27 +63,37 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     private void setUpLiveData(){
-        MainViewModelFactory factory = new MainViewModelFactory(mDb);
-        MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
-            viewModel.getMovieObjects().observe(MainActivity.this, new Observer<List<MovieObject>>() {
-                @Override
-                public void onChanged(List<MovieObject> movieObjects) {
-                    Log.d("MainActivity", movieObjects.toString());
-                    mMovieData = movieObjects;
-                    mMovieAdapter.setMovieData(mMovieData);
-                }
-            });
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                MainViewModelFactory factory = new MainViewModelFactory(mDb);
+                MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        viewModel.getMovieObjects().observe(MainActivity.this, movieObjects -> {
+                            Log.d("MainActivity", movieObjects.toString());
+                            mMovieData = movieObjects;
+                            mMovieAdapter.setMovieData(mMovieData);
+                            CURRENT_STATE = STATE_FAVORITE;
+
+                        });
+                    }
+                });
+            }
+        });
 
     }
 
     private void callURL(String url){
-        if(isOnline()) {
+        if(NetworkUtils.isOnline()) {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     mMovieData = JSONUtils.parseJSON(response);
                     mMovieAdapter.setMovieData(mMovieData);
-
+                    CURRENT_STATE = STATE_NETWORK;
                 }
             }, error -> error.printStackTrace());
 
@@ -118,19 +130,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         return size.x;
     }
 
-    //Taken from https://stackoverflow.com/a/27312494
-    //May 5, 2020
-        public boolean isOnline() {
-            Runtime runtime = Runtime.getRuntime();
-            try {
-                Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
-                int     exitValue = ipProcess.waitFor();
-                return (exitValue == 0);
-            }
-            catch (IOException | InterruptedException e)          { e.printStackTrace(); }
 
-            return false;
-        }
 
 
 
@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         int id = mMovieData.get(clickedItemIndex).getId();
         Intent intentToDetails = new Intent(MainActivity.this, DetailActivity.class);
         intentToDetails.putExtra("KEY", id);
+        intentToDetails.putExtra(Intent.EXTRA_TEXT, CURRENT_STATE);
         startActivity(intentToDetails);
 
 
@@ -181,7 +182,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         return true;
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mMovieAdapter.notifyDataSetChanged();
+    }
 }
 
 
