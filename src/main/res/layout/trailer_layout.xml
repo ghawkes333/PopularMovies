@@ -14,13 +14,13 @@
         android:layout_weight="1"
         android:contentDescription="@string/play_button_content_description"
         android:src="@drawable/ic_play_arrow_black_24dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView"
-        app:layout_constraintEnd_toStartOf="@+id/textView"
+        app:layout_constraintBottom_toBottomOf="@+id/trailer_link_tv"
+        app:layout_constraintEnd_toStartOf="@+id/trailer_link_tv"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView" />
+        app:layout_constraintTop_toTopOf="@+id/trailer_link_tv" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/trailer_link_tv"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginStart="@dimen/double_margin"

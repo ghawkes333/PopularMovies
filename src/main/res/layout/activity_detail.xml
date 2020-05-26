@@ -11,7 +11,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:id="@+id/constraint_layout">
 
         <TextView
             android:id="@+id/title_tv"
@@ -69,7 +70,7 @@
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_tv"
-            app:srcCompat="@drawable/ic_star_filled_24dp" />
+            app:srcCompat="@drawable/ic_star_filled_24dp"/>
 
         <TextView
             android:id="@+id/summary_tv"
@@ -85,6 +86,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/poster_iv"
             tools:text="Every childalfjalskfj ljlfajsflkjaslkfjlkasjflajsjljlkfajsfljal;fjlasjfljaslf;jljslsdj;faj" />
+
 
         <View
             android:id="@+id/top_divider"
@@ -110,14 +112,27 @@
             app:layout_constraintTop_toBottomOf="@+id/top_divider" />
 
         <LinearLayout
-            android:id="@+id/videos_container"
-            android:layout_width="0dp"
-            android:layout_height="47dp"
+            android:id="@+id/reviews_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/horizontal_margin"
             android:layout_marginTop="16dp"
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/trailers_label"/>
+            app:layout_constraintTop_toBottomOf="@+id/reviews_label" />
+
+        <LinearLayout
+            android:id="@+id/videos_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/trailers_label">
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/reviews_label"
@@ -127,18 +142,11 @@
             android:layout_marginTop="@dimen/vertical_margin"
             android:text="@string/reviews_label"
             android:textSize="24sp"
+            android:orientation="vertical"
             app:layout_constraintStart_toStartOf="@+id/videos_container"
             app:layout_constraintTop_toBottomOf="@+id/videos_container" />
 
-        <LinearLayout
-            android:id="@+id/reviews_container"
-            android:layout_width="0dp"
-            android:layout_height="47dp"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/reviews_label"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>
