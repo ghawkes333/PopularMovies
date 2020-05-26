@@ -1,6 +1,8 @@
 package com.appsalothelpgmail.popularmovies.Network;
 
 
+import android.util.Log;
+
 import com.appsalothelpgmail.popularmovies.MovieObject;
 
 import org.json.JSONArray;
@@ -10,7 +12,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 public class JSONUtils {
@@ -46,7 +47,7 @@ public class JSONUtils {
         return new MovieObject(id, title, releaseDate, null, null, null, voteAverage, imageURL);
     }
 
-    public static LiveData<MovieObject> parseSingleJSONAsLiveData(JSONObject object) throws JSONException{
+    public static MutableLiveData<MovieObject> parseSingleJSONAsLiveData(JSONObject object) throws JSONException{
         int id;
 
         String title = object.getString(TMDbValues.TMDB_RESPONSE_TITLE);
@@ -56,32 +57,29 @@ public class JSONUtils {
 
         id = object.getInt(TMDbValues.TMDB_RESPONSE_MOVIE_ID);
 
-        String data = title + "\n" + id + "\n" + releaseDate + "\n" + voteAverage + "\n" + overview;
         String imageURL = TMDbValues.TMDB_IMAGE_URL + object.getString(TMDbValues.TMDB_RESPONSE_MOVIE_IMAGE_PATH);
 
-        MovieObject movieObject = new MovieObject(id, title, releaseDate, null, null, null, voteAverage, imageURL);
+        MovieObject movieObject = new MovieObject(id, title, releaseDate, overview, null, null, voteAverage, imageURL);
         MutableLiveData<MovieObject> liveData = new MutableLiveData<MovieObject>();
         liveData.setValue(movieObject);
 
         return liveData;
     }
 
-    public static LiveData<ArrayList<String>> parseReviews(JSONObject object) throws JSONException{
+    public static ArrayList<String> parseReviews(JSONObject object) throws JSONException{
         JSONArray array = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
         ArrayList<String> reviews = new ArrayList<String>();
         for(int i = 0; i < array.length(); i++){
-
+            Log.d("JSONUtils", array.getJSONObject(i).toString());
             reviews.add(array.getJSONObject(i).getString(TMDbValues.TMDB_RESPONSE_CONTENT));
 
         }
 
 
-        MutableLiveData<ArrayList<String>> liveData = new MutableLiveData<ArrayList<String>>();
-        liveData.setValue(reviews);
-        return liveData;
+        return reviews;
     }
 
-    public static LiveData<ArrayList<String>> parseVideos(JSONObject object) throws JSONException{
+    public static ArrayList<String> parseVideos(JSONObject object) throws JSONException{
         JSONArray array = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
         ArrayList<String> videos = new ArrayList<String>();
         for(int i = 0; i < array.length(); i++){
@@ -90,8 +88,6 @@ public class JSONUtils {
             }
         }
 
-        MutableLiveData<ArrayList<String>> liveData = new MutableLiveData<ArrayList<String>>();
-        liveData.setValue(videos);
-        return liveData;
+        return videos;
     }
 }

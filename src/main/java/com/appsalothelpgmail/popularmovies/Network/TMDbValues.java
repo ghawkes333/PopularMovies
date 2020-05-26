@@ -17,6 +17,8 @@ public class TMDbValues {
     public final static String TMDB_API_PARAM = "?api_key=";
     public final static String TMDB_VIDEO_PARAM = "/videos";
     public final static String TMDB_REVIEWS_PARAM = "/reviews";
+    public final static String TMDB_MOVIE = "/movie";
+    public final static String TMDB_SLASH = "/";
 
 
 

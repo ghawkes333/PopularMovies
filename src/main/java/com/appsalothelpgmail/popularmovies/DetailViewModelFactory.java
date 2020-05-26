@@ -13,6 +13,7 @@ public class DetailViewModelFactory extends ViewModelProvider.NewInstanceFactory
     private int mId;
     private Context mContext;
 
+
     public DetailViewModelFactory(MovieDatabase db, int id, Context context){
         mDb = db;
         mId = id;
