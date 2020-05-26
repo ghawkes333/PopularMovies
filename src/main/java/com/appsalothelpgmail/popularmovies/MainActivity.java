@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public static final String STATE_FAVORITE = "favorite";
     public static final String STATE_NETWORK = "network";
     public static String CURRENT_STATE;
+    private Menu mMenu;
 
     //The current sort criteria, either Popular or Top Rated
     private boolean isPopularSort = false;
@@ -59,10 +60,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMovieRecycler.setHasFixedSize(true);
         mMovieRecycler.setAdapter(mMovieAdapter);
 
-        setUpLiveData();
+        setUpFavoriteLiveData();
     }
 
-    private void setUpLiveData(){
+    private void setUpFavoriteLiveData(){
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
@@ -163,6 +164,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 setSortMenuTitle(isPopularSort, item);
                 callURL(getURL());
                 break;
+            case R.id.mn_switch_mode:
+                if(CURRENT_STATE.equals(STATE_FAVORITE)){
+                    CURRENT_STATE = STATE_NETWORK;
+                    item.setTitle(R.string.menu_show_favorites);
+                    mMenu.getItem(1).setVisible(true);
+                    callURL(getURL());
+                } else {
+                    CURRENT_STATE = STATE_FAVORITE;
+                    item.setTitle(R.string.menu_show_all);
+                    mMenu.getItem(1).setVisible(false);
+                    setUpFavoriteLiveData();
+                }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -179,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
+        mMenu = menu;
         return true;
     }
 

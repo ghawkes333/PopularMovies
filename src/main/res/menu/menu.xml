@@ -9,5 +9,10 @@
     <item
         android:title="@string/sort_menu_title_top"
         app:showAsAction="never"
-        android:id="@+id/mn_sort"/>
+        android:id="@+id/mn_sort"
+        android:visible="false"/>
+    <item
+        android:title="@string/menu_show_all"
+        app:showAsAction="never"
+        android:id="@+id/mn_switch_mode"/>
 </menu>
