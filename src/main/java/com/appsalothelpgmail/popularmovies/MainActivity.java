@@ -7,39 +7,40 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
-import com.appsalothelpgmail.popularmovies.Network.JSONUtils;
-import com.appsalothelpgmail.popularmovies.Network.NetworkUtils;
 import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
-
-import org.json.JSONObject;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieItemClickListener{
 
+    private String TAG = MainActivity.class.getSimpleName();
+
     private static List<MovieObject> mMovieData;
+    private static List<MovieObject> mFavoriteMovies;
+    private static List<MovieObject> mNetworkMovies;
+
     private RecyclerView mMovieRecycler;
     private MovieAdapter mMovieAdapter;
     private MovieDatabase mDb;
     public static final String STATE_FAVORITE = "favorite";
     public static final String STATE_NETWORK = "network";
-    public static String CURRENT_STATE;
+    public static String CURRENT_STATE = STATE_FAVORITE;
     private Menu mMenu;
 
+    private String STATE_BUNDLE_KEY = "state";
+    private String SORT_BUNDLE_KEY = "sort";
+
     //The current sort criteria, either Popular or Top Rated
-    private boolean isPopularSort = false;
+    private String CURRENT_SORT = TMDbValues.TMDB_TOP_RATED;
 
 
     @Override
@@ -47,9 +48,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Set the current state and sort
+        if(savedInstanceState != null){
+            String state = savedInstanceState.getString(STATE_BUNDLE_KEY);
+            String sort = savedInstanceState.getString(SORT_BUNDLE_KEY);
+            if(state != null) CURRENT_STATE = state;
+            if(sort != null) CURRENT_SORT = sort;
+        }
+        Log.d(TAG, "State is " + CURRENT_STATE);
+
         mDb = MovieDatabase.getInstance(this);
         mMovieAdapter = new MovieAdapter(mMovieData, this);
-        CURRENT_STATE = STATE_FAVORITE;
 
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, getNumColumns());
@@ -60,62 +69,48 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMovieRecycler.setHasFixedSize(true);
         mMovieRecycler.setAdapter(mMovieAdapter);
 
-        setUpFavoriteLiveData();
+        setUpLiveData();
     }
 
-    private void setUpFavoriteLiveData(){
+    private void setUpLiveData(){
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
-                MainViewModelFactory factory = new MainViewModelFactory(mDb);
+                MainViewModelFactory factory;
+                if(CURRENT_STATE.equals(STATE_FAVORITE)){
+                    factory = new MainViewModelFactory(mDb, null, null);
+                } else{
+//                    setUpDataFromNetwork(getURL());
+                    Log.d(TAG, "Bug 1: Initating factory...");
+
+                    factory = new MainViewModelFactory(null, MainActivity.this, CURRENT_SORT);
+                }
+                Log.d(TAG, "Bug 1: Factory initated. Initating provider...");
                 MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
-
-                runOnUiThread(new Runnable() {
+                Log.d(TAG, "Bug 1: Provider intitated. Setting observe");
+                runOnUiThread(() -> viewModel.getMovieObjects().observe(MainActivity.this, new Observer<List<MovieObject>>() {
                     @Override
-                    public void run() {
-                        viewModel.getMovieObjects().observe(MainActivity.this, movieObjects -> {
-                            Log.d("MainActivity", movieObjects.toString());
-                            mMovieData = movieObjects;
-                            mMovieAdapter.setMovieData(mMovieData);
-                            CURRENT_STATE = STATE_FAVORITE;
+                    public void onChanged(List<MovieObject> movieObjects){
+                        Log.d(TAG, "Bug 1: MovieObjects changed");
+                        mMovieData = movieObjects;
+                        Log.d(TAG, "Bug 1: MovieObject[0] title is " + movieObjects.get(0).getTitle().toString());
+                        mMovieAdapter.setMovieData(mMovieData);
+                        Log.d(TAG, "Bug 1: MovieObjects changed. Data reset");
 
-                        });
                     }
-                });
+                }
+));
             }
         });
 
     }
 
-    private void callURL(String url){
-        if(NetworkUtils.isOnline()) {
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    mMovieData = JSONUtils.parseJSON(response);
-                    mMovieAdapter.setMovieData(mMovieData);
-                    CURRENT_STATE = STATE_NETWORK;
-                }
-            }, error -> error.printStackTrace());
-
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
-            requestQueue.add(jsonObjectRequest);
-        } else Toast.makeText(this, getString(R.string.no_internet), Toast.LENGTH_SHORT).show();
-    }
 
 
     private int getNumColumns(){
         int width = getScreenWidth();
         int columnWidth = (int) getResources().getDimension(R.dimen.grid_item_length);
         return (int) Math.floor(width / columnWidth);
-    }
-
-    private String getURL(){
-        if (isPopularSort)
-            return TMDbValues.TMDB_BASE_URL + TMDbValues.TMDB_POPULAR + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        else
-            return TMDbValues.TMDB_BASE_URL + TMDbValues.TMDB_TOP_RATED + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-
     }
 
 
@@ -160,30 +155,32 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 break;
 
             case R.id.mn_sort:
-                isPopularSort = !isPopularSort;
-                setSortMenuTitle(isPopularSort, item);
-                callURL(getURL());
+                if(CURRENT_SORT.equals(TMDbValues.TMDB_POPULAR)) CURRENT_SORT = TMDbValues.TMDB_TOP_RATED;
+                else CURRENT_SORT = TMDbValues.TMDB_POPULAR;
+
+                setSortMenuTitle(CURRENT_SORT, item);
+                setUpLiveData();
                 break;
             case R.id.mn_switch_mode:
                 if(CURRENT_STATE.equals(STATE_FAVORITE)){
                     CURRENT_STATE = STATE_NETWORK;
                     item.setTitle(R.string.menu_show_favorites);
                     mMenu.getItem(1).setVisible(true);
-                    callURL(getURL());
+                    setUpLiveData();
                 } else {
                     CURRENT_STATE = STATE_FAVORITE;
                     item.setTitle(R.string.menu_show_all);
                     mMenu.getItem(1).setVisible(false);
-                    setUpFavoriteLiveData();
+                    setUpLiveData();
                 }
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void setSortMenuTitle(boolean isPopular, MenuItem item){
+    private void setSortMenuTitle(String sort, MenuItem item){
         int titleId;
 
-        if(isPopular) titleId = R.string.sort_menu_title_pop;
+        if(sort.equals(TMDbValues.TMDB_POPULAR)) titleId = R.string.sort_menu_title_pop;
         else titleId = R.string.sort_menu_title_top;
 
         item.setTitle(titleId);
@@ -193,6 +190,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         mMenu = menu;
+        if(CURRENT_STATE.equals(STATE_NETWORK)){
+            mMenu.getItem(1).setVisible(true);
+            mMenu.getItem(2).setTitle(R.string.menu_show_favorites);
+        } else {
+            mMenu.getItem(1).setVisible(false);
+            mMenu.getItem(2).setTitle(R.string.menu_show_all);
+        }
         return true;
     }
 
@@ -200,6 +204,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     protected void onResume() {
         super.onResume();
         mMovieAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(STATE_BUNDLE_KEY, CURRENT_STATE);
+        outState.putString(SORT_BUNDLE_KEY, CURRENT_SORT);
     }
 }
 

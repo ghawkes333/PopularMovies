@@ -12,11 +12,13 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 public class JSONUtils {
 
     public static List<MovieObject> parseJSON(JSONObject object){
+        Log.d("JSONUtils", "Running parseJSON");
         ArrayList<MovieObject> objects = new ArrayList<MovieObject>();
         try{
             JSONArray results = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
@@ -28,6 +30,24 @@ public class JSONUtils {
         }
 
         return objects;
+    }
+
+    public static LiveData<List<MovieObject>> parseJSONAsLiveData(JSONObject object){
+        Log.d("JSONUtils", "Running parseJSONAsLiveData");
+
+        MutableLiveData<ArrayList<MovieObject>> objects = new MutableLiveData<>();
+        try{
+            JSONArray results = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
+            ArrayList<MovieObject> objectsArray = new ArrayList<>();
+            objects.setValue(objectsArray);
+
+            for(int i = 0; i < results.length(); i++) {
+                objectsArray.add(parseSingleJSON(results.getJSONObject(i)));
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return (LiveData) objects;
     }
 
 
@@ -48,6 +68,8 @@ public class JSONUtils {
     }
 
     public static MutableLiveData<MovieObject> parseSingleJSONAsLiveData(JSONObject object) throws JSONException{
+        Log.d("JSONUtils", "Running parseSingleJSONAsLiveData");
+
         int id;
 
         String title = object.getString(TMDbValues.TMDB_RESPONSE_TITLE);
