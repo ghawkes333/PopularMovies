@@ -95,6 +95,10 @@ public class MovieObject {
         mReviews = reviews;
     }
 
+    public void setVideos(String[] videos) {
+        mVideos = videos;
+    }
+
     public void setId(int id) {
         mId = id;
     }
