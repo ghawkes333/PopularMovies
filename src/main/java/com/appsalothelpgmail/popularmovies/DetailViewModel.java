@@ -27,7 +27,7 @@ public class DetailViewModel extends ViewModel {
     * */
     public DetailViewModel(MovieDatabase db, int movieId, Context context, String state){
         //Get the movie
-        MovieRepository.getInstance(context).getSingleMovie(context, movieId, state);
+        DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
         //While MovieRepository is pulling the movie from the background, create a placeholder movieObject
         MovieObject object = new MovieObject(-1, null, null, null, null, null, null, null);
         mMovieObject = new MutableLiveData<>();

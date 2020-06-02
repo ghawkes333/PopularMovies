@@ -18,8 +18,9 @@ public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     private LiveData<List<MovieObject>> mMovies = null;
     private Context mContext;
     private String mSort;
+    private String mState;
 
-    public MainViewModelFactory(MovieDatabase db, Context context, String sort){
+    public MainViewModelFactory(MovieDatabase db, Context context, String sort, String state){
         Log.d(TAG, "Bug 1: In factory constructor");
         Log.d(TAG, "Bug 1: DB is " + db + "\nContext is " + context + "\nsort is " + sort);
         mDb = db;
@@ -27,6 +28,7 @@ public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 //        else setMovieObject(context, sort);
         mContext = context;
         mSort = sort;
+        mState = state;
     }
 
     @NonNull
@@ -34,7 +36,7 @@ public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         Log.d(TAG, "Bug 1: About to get JSON");
         //noinspection unchecked
-        return (T) new MainViewModel(mDb, mContext, mSort);
+        return (T) new MainViewModel(mDb, mContext, mSort, mState);
     }
 
 
