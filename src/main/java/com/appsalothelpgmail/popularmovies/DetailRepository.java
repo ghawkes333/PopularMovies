@@ -20,9 +20,9 @@ import java.util.List;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-public class MovieRepository {
-    private static MovieRepository mInstance;
-    private static String TAG = MovieRepository.class.getSimpleName();
+public class DetailRepository {
+    private static DetailRepository mInstance;
+    private static String TAG = DetailRepository.class.getSimpleName();
 
     private static Context mContext;
 
@@ -30,16 +30,16 @@ public class MovieRepository {
     private LiveData<List<MovieObject>> mMovieObjects;
 
 
-    public static MovieRepository getInstance(Context context){
+    public static DetailRepository getInstance(Context context){
         if(mInstance != null){
             return mInstance;
         } else {
-            mInstance = new MovieRepository(context);
+            mInstance = new DetailRepository(context);
         }
         return mInstance;
     }
 
-    public  MovieRepository(Context context){
+    public DetailRepository(Context context){
         //Empty constructor
     }
 
