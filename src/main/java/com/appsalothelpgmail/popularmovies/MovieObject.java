@@ -45,7 +45,6 @@ public class MovieObject {
         this.mImageURL = mImageURL;
     }
 
-
     public String getTitle() {
         return mTitle;
     }

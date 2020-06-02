@@ -87,8 +87,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 }
                 Log.d(TAG, "Bug 1: Factory initated. Initating provider...");
                 MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
+//                MainViewModel mainViewModel = new MainViewModel(mDb, MainActivity.this, CURRENT_SORT);
                 Log.d(TAG, "Bug 1: Provider intitated. Setting observe");
-                runOnUiThread(() -> viewModel.getMovieObjects().observe(MainActivity.this, new Observer<List<MovieObject>>() {
+                runOnUiThread(() -> viewModel.getMovieObjects(CURRENT_STATE, mDb, MainActivity.this, CURRENT_SORT).observe(MainActivity.this, new Observer<List<MovieObject>>() {
                     @Override
                     public void onChanged(List<MovieObject> movieObjects){
                         Log.d(TAG, "Bug 1: MovieObjects changed");
@@ -99,7 +100,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
                     }
                 }
-));
+
+                ));
+
             }
         });
 

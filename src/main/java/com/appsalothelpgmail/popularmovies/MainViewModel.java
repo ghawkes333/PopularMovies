@@ -14,34 +14,59 @@ import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
 
 import org.json.JSONObject;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class MainViewModel extends ViewModel {
-    private LiveData<List<MovieObject>> mMovieObjects;
+
     private MovieDatabase mDb;
     private String TAG = MainViewModel.class.getSimpleName();
+    private MutableLiveData<List<MovieObject>> mNetworkMovieObjects;
+    private MutableLiveData<List<MovieObject>> mDatabaseMovieObjects;
 
     /*
     * Set @param db to null to pull movie objects from the API
     *
     * */
     public MainViewModel(MovieDatabase db, Context context, String sort) {
+
+
+
         Log.d(TAG, "Bug 1: Starting viewmodel");
-        if(db == null) {
+        if(db != null) {
             Log.d(TAG, "Bug 1: DB is not null. Pulling from DB...");
             mDb = db;
-            mMovieObjects = db.movieDao().queryEntireDatabase();
+            initDatabaseMovieObjects(db);
         } else {
             Log.d(TAG, "Bug 1: DB is null. Start setMovieObject");
             setMovieObject(context, sort);
         }
     }
 
-    public LiveData<List<MovieObject>> getMovieObjects(){
-        return mMovieObjects;
+    private void initDatabaseMovieObjects(MovieDatabase db){
+        mDatabaseMovieObjects = new MutableLiveData<>();
+        mDatabaseMovieObjects.postValue(db.movieDao().queryEntireDatabase());
+    }
+
+    public LiveData<List<MovieObject>> getMovieObjects(String state, MovieDatabase db, Context context, String sort){
+        if(state.equals(MainActivity.STATE_FAVORITE)){
+            if(mDatabaseMovieObjects == null){
+                initDatabaseMovieObjects(db);
+                return mDatabaseMovieObjects;
+            } else return mDatabaseMovieObjects;
+        } else if(state.equals(MainActivity.STATE_NETWORK)) {
+            if(mNetworkMovieObjects == null){
+                setMovieObject(context, sort);
+                //Note: might return null here if setMovieObject uses background thread
+                return mNetworkMovieObjects;
+            } else return mNetworkMovieObjects;
+        } else {
+            throw new InvalidParameterException("State is neither 'favorite' or 'network'");
+        }
     }
 
     private void setMovieObject(Context context, String sort){
@@ -64,8 +89,9 @@ public class MainViewModel extends ViewModel {
                 Log.d(TAG, "Bug 1: About to get JSON");
                 JSONObject object = (JSONObject) future.get();
                 Log.d(TAG, "Bug 1: About to parse JSON");
-                mMovieObjects = JSONUtils.parseJSONAsLiveData(object);
+                mNetworkMovieObjects.postValue(JSONUtils.parseJSON(object));
                 Log.d(TAG, "Bug 1: JSON parsed, mMovieObjects set");
+                Log.d(TAG, "Bug 1: first title is " + mNetworkMovieObjects.getValue().get(0).getTitle());
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -74,6 +100,15 @@ public class MainViewModel extends ViewModel {
 
 
     }
+
+    public void resetMovieObjects(Context context, String sort) {
+        setMovieObject(context, sort);
+    }
+
+    public void setDb(MovieDatabase mDb) {
+        this.mDb = mDb;
+    }
+
 
 
 }

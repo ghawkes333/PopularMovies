@@ -4,7 +4,6 @@ import com.appsalothelpgmail.popularmovies.MovieObject;
 
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -14,10 +13,10 @@ import androidx.room.Query;
 public interface MovieDao {
 
     @Query("SELECT * FROM movies")
-    LiveData<List<MovieObject>> queryEntireDatabase();
+    List<MovieObject> queryEntireDatabase();
 
     @Query("SELECT * FROM movies WHERE _ID = :id")
-    LiveData<MovieObject> queryMovie(int id);
+    MovieObject queryMovie(int id);
 
     @Query("SELECT EXISTS (SELECT * FROM movies WHERE _ID = :id)")
     boolean existsInDatabase(int id);

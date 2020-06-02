@@ -19,8 +19,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class DetailActivity extends AppCompatActivity {
 
-    ActivityDetailBinding mBinding;
-    final String TAG = DetailActivity.class.getSimpleName();
+    private ActivityDetailBinding mBinding;
+    private final String TAG = DetailActivity.class.getSimpleName();
+    private DetailViewModel mModel = null;
+    private MovieDatabase mDb = null;
+    private int mId = -1;
 
     boolean isFavorite = false;
 
@@ -30,7 +33,7 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
 
-        MovieDatabase db = MovieDatabase.getInstance(this);
+        mDb = MovieDatabase.getInstance(this);
 
 
         if(getIntent() != null) {
@@ -38,32 +41,20 @@ public class DetailActivity extends AppCompatActivity {
                 String state = getIntent().getStringExtra(Intent.EXTRA_TEXT);
 
                 if (getIntent().hasExtra("KEY")) {
-                    int id = getIntent().getIntExtra("KEY", -1);
+                    mId = getIntent().getIntExtra("KEY", -1);
 
                     DetailViewModelFactory factory = null;
-                    if (id != -1 && state.equals(MainActivity.STATE_FAVORITE)) {
-                        //The movie is in the database
-                        factory = new DetailViewModelFactory(db, id, DetailActivity.this);
+                    factory = new DetailViewModelFactory(mDb, mId, DetailActivity.this, state);
+                    mModel = new ViewModelProvider(this, factory).get(DetailViewModel.class);
 
-                    } else if(state.equals(MainActivity.STATE_NETWORK)){
-                        //The movie is not in the database
-                        factory = new DetailViewModelFactory(null, id, DetailActivity.this);
 
-                    } else {
-                        Log.w(TAG, "The ID passed in the intent is invalid");
-                    }
+                    mModel.getMovieObject().observe(this, movieObject -> {
+                        populateUI(movieObject, mDb);
+                    });
 
-                    if(factory != null){
-                        DetailViewModel model = new ViewModelProvider(this, factory).get(DetailViewModel.class);
+                    //Set up favorite button
+                    mBinding.starIv.setOnClickListener(view -> onFavoriteButtonClicked(mModel.getMovieObject().getValue(), mId, mDb));
 
-                        model.getMovieObject().observe(this, movieObject -> {
-                            Log.d(TAG, "MovieObject title is " + movieObject.getTitle());
-                            populateUI(movieObject, db);
-                        });
-
-                        //Set up favorite button
-                        mBinding.starIv.setOnClickListener(view -> onFavoriteButtonClicked(model.getMovieObject().getValue(), id, db));
-                    }
                 }
             } else{
                 Log.w(TAG, "Intent did not pass a state");
@@ -74,6 +65,7 @@ public class DetailActivity extends AppCompatActivity {
 
 
     private void populateUI(MovieObject movie, MovieDatabase db){
+        if(movie == null) return;
         String url = movie.getImageURL();
         String title = movie.getTitle();
         String summary = movie.getPlotSummary();
@@ -162,31 +154,6 @@ public class DetailActivity extends AppCompatActivity {
 
         }
     }
-
-//    private void insertMovieFromNetwork(int id, MovieDatabase db){
-//        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-//        if(NetworkUtils.isOnline()) {
-//            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-//                @Override
-//                public void onResponse(JSONObject response) {
-//                    try {
-//                        MovieObject object = JSONUtils.parseSingleJSONAsLiveData(response).getValue();
-//                        db.movieDao().insertMovie(object);
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }, error -> {
-//                error.printStackTrace();
-//                Log.e(TAG, "Error: Network response is " + error.networkResponse.statusCode);
-//            });
-//
-//            RequestQueue requestQueue = Volley.newRequestQueue(this);
-//            requestQueue.add(jsonObjectRequest);
-//        } else Log.w(TAG, "No internet");
-//
-//
-//    }
 
 
 }

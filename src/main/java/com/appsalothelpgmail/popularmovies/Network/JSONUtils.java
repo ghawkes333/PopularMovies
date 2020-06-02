@@ -39,7 +39,7 @@ public class JSONUtils {
         try{
             JSONArray results = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
             ArrayList<MovieObject> objectsArray = new ArrayList<>();
-            objects.setValue(objectsArray);
+            objects.postValue(objectsArray);
 
             for(int i = 0; i < results.length(); i++) {
                 objectsArray.add(parseSingleJSON(results.getJSONObject(i)));
@@ -83,7 +83,7 @@ public class JSONUtils {
 
         MovieObject movieObject = new MovieObject(id, title, releaseDate, overview, null, null, voteAverage, imageURL);
         MutableLiveData<MovieObject> liveData = new MutableLiveData<MovieObject>();
-        liveData.setValue(movieObject);
+        liveData.postValue(movieObject);
 
         return liveData;
     }

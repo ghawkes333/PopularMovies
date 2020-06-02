@@ -3,17 +3,7 @@ package com.appsalothelpgmail.popularmovies;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
-import com.appsalothelpgmail.popularmovies.Network.JSONUtils;
-import com.appsalothelpgmail.popularmovies.Network.NetworkUtils;
-import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -24,7 +14,7 @@ import androidx.lifecycle.ViewModel;
 
 public class DetailViewModel extends ViewModel {
     private static final String TAG = DetailViewModel.class.getSimpleName();
-    private MutableLiveData<MovieObject> mMovieObject;
+    private static MutableLiveData<MovieObject> mMovieObject;
 
 
     @Nullable
@@ -35,16 +25,13 @@ public class DetailViewModel extends ViewModel {
     /*
     * Pass in null for @param db to pull object from web
     * */
-    public DetailViewModel(MovieDatabase db, int movieId, Context context){
-        if(db == null){
-            Log.d(TAG, "DB is null. Setting objects from network");
-            mMovieObject = new MutableLiveData<>();
-            mMovieObject.setValue(new MovieObject(-1, "", "", "", new String[] {}, new String[] {}, "", ""));
-            setMovieObject(context, movieId);
-        } else {
-            mMovieObject.setValue(db.movieDao().queryMovie(movieId).getValue());
-        };
-
+    public DetailViewModel(MovieDatabase db, int movieId, Context context, String state){
+        //Get the movie
+        MovieRepository.getInstance(context).getSingleMovie(context, movieId, state);
+        //While MovieRepository is pulling the movie from the background, create a placeholder movieObject
+        MovieObject object = new MovieObject(-1, null, null, null, null, null, null, null);
+        mMovieObject = new MutableLiveData<>();
+        mMovieObject.postValue(object);
 
     }
 
@@ -52,89 +39,10 @@ public class DetailViewModel extends ViewModel {
         return mMovieObject;
     }
 
-    private void setMovieObject(Context context, int id){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        if(NetworkUtils.isOnline()) {
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    try {
-                        MovieObject object = JSONUtils.parseSingleJSONAsLiveData(response).getValue();
-                        setReviews(context, id, object);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, error -> {
-                error.printStackTrace();
-                Log.e(TAG, "Error: Network response is " + error.networkResponse.statusCode);
-            });
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-
-            requestQueue.add(jsonObjectRequest);
-        } else Log.w(TAG, "No internet");
-
-
-    }
-
-    private void setReviews(Context context, int id, MovieObject object){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_REVIEWS_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        if(NetworkUtils.isOnline()) {
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    try {
-                        object.setReviews(objectArrToStringArr(JSONUtils.parseReviews(response).toArray()));
-                        setVideos(context, id, object);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, error -> {
-                error.printStackTrace();
-                Log.e(TAG, "Error: Network response is " + error.networkResponse.statusCode);
-            });
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
-        } else Log.w(TAG, "No internet");
-
-
-    }
-
-    private String[] objectArrToStringArr(Object[] objects){
-        String[] strings = new String[objects.length];
-        for (int i = 0; i < objects.length; i++){
-            strings[i] = objects[i].toString();
-        }
-
-        return strings;
-    }
-
-    private void setVideos(Context context, int id, MovieObject object){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_VIDEO_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        if(NetworkUtils.isOnline()) {
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    try {
-                        object.setVideos(objectArrToStringArr(JSONUtils.parseVideos(response).toArray()));
-                        mMovieObject.setValue(object);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, error -> {
-                error.printStackTrace();
-                Log.e(TAG, "Error: Network response is " + error.networkResponse.statusCode);
-            });
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
-        } else Log.w(TAG, "No internet");
-
-
+    public static void setMovieObject(LiveData<MovieObject> movieObject){
+        Log.d(TAG, "Setting movie object");
+        mMovieObject.postValue(movieObject.getValue());
+        Log.d(TAG, "Movieobject title is " + movieObject.getValue().getTitle());
     }
 
 }
