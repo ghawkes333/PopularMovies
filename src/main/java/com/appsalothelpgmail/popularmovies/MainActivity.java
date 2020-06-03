@@ -17,6 +17,7 @@ import java.util.concurrent.Executor;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public static String CURRENT_STATE = STATE_FAVORITE;
     private Menu mMenu;
     private MainViewModel mViewModel;
+    private Observer<List<MovieObject>> mObserver;
 
     private boolean isObserved = false;
 
@@ -72,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMovieRecycler.setLayoutManager(gridLayoutManager);
         mMovieRecycler.setHasFixedSize(true);
         mMovieRecycler.setAdapter(mMovieAdapter);
-
         setUpLiveData();
     }
 
@@ -80,12 +81,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
-                MainViewModelFactory factory;
-                factory = new MainViewModelFactory(mDb, MainActivity.this, CURRENT_SORT, CURRENT_STATE);
-                Log.d(TAG, "Bug 1: Factory initated. Initating provider...");
-                mViewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
-                Log.d(TAG, "Bug 1: Provider intitated. Setting observe");
-
+                setUpViewModel();
+                Log.d(TAG, "isObserved is " + isObserved);
                 if(!isObserved){
                     //Set up observer
                     runOnUiThread(() -> observeViewModel());
@@ -97,37 +94,35 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     private void observeViewModel(){
-        mViewModel.getMovieObjects().observe(MainActivity.this, movieObjects -> {
+        mObserver = movieObjects -> {
             Log.d(TAG, "Bug 1: MovieObjects changed");
             mMovieData = movieObjects;
-            Log.d(TAG, "Bug 1: MovieObject[0] title is " + movieObjects.get(0).getTitle().toString());
+            if(mViewModel == null) Log.d(TAG, "mViewModel is null");
+            else if(mViewModel.getMovieObjects() == null) Log.d(TAG, "mViewModel is not null. GetMovieObjects is null");
+            else if(mViewModel.getMovieObjects().getValue() == null) Log.d(TAG, "mViewModel is not null. GetMovieObjects.Value is null");
+            else if(mViewModel.getMovieObjects().getValue().size() < 1) Log.d(TAG, "mViewModel is not null. GetMovieObjects.length is " + mViewModel.getMovieObjects().getValue().size());
+            else Log.d(TAG, "mViewmodel nor getMovieObjects are null");
             mMovieAdapter.setMovieData(mMovieData);
             Log.d(TAG, "Bug 1: MovieObjects changed. Data reset");
 
-        });
+        };
+        mViewModel.getMovieObjects().observe(MainActivity.this, mObserver);
     }
 
     private void resetAdapterData(){
-        Executor executor = null;
-        if(CURRENT_STATE.equals(STATE_FAVORITE)){
-            executor = AppExecutors.getInstance().diskIO();
-        } else if(CURRENT_STATE.equals(STATE_NETWORK)){
-            executor = AppExecutors.getInstance().networkIO();
-        } else {
-            throw new InvalidParameterException("CURRENT_STATE is neither favorite or network");
-        }
-
         //Reset the adapter data
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                mViewModel.setState(CURRENT_STATE);
-                mViewModel.setSort(CURRENT_SORT);
-                mViewModel.resetMovieObjects();
-            }
+        getExecutor().execute(() -> {
+            mViewModel.setState(CURRENT_STATE);
+            mViewModel.setSort(CURRENT_SORT);
+            mViewModel.resetMovieObjects();
         });
 
 
+    }
+
+    private void setUpViewModel(){
+        MainViewModelFactory factory = new MainViewModelFactory(mDb, MainActivity.this, CURRENT_SORT, CURRENT_STATE);
+        mViewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
     }
 
 
@@ -180,11 +175,26 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 break;
 
             case R.id.mn_sort:
+                //Switch sort
                 if(CURRENT_SORT.equals(TMDbValues.TMDB_POPULAR)) CURRENT_SORT = TMDbValues.TMDB_TOP_RATED;
                 else CURRENT_SORT = TMDbValues.TMDB_POPULAR;
 
+                getExecutor().execute(() -> {
+                    if(mViewModel == null){
+                        //Reset the view model
+                        setUpViewModel();
+                    }
+
+                    runOnUiThread(() -> {
+                        if(mObserver == null || !isObserved){
+                            //Observe the view model
+                            observeViewModel();
+                        }
+                        resetAdapterData();
+                    });
+                });
+
                 setSortMenuTitle(CURRENT_SORT, item);
-                resetAdapterData();
                 break;
             case R.id.mn_switch_mode:
                 //Set flags
@@ -215,6 +225,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         item.setTitle(titleId);
     }
 
+    private Executor getExecutor(){
+        if(CURRENT_STATE.equals(STATE_NETWORK)){
+            return AppExecutors.getInstance().networkIO();
+        } else if(CURRENT_STATE.equals(STATE_FAVORITE)){
+            return AppExecutors.getInstance().diskIO();
+        } else{
+            throw new InvalidParameterException("State is neither favorite nor network");
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
@@ -233,6 +253,26 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     protected void onResume() {
         super.onResume();
         mMovieAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        getExecutor().execute(() -> {
+            if(mViewModel == null){
+                //Reset the view model
+                setUpViewModel();
+            }
+
+            runOnUiThread(() -> {
+                if(mObserver == null || !isObserved){
+                    //Observe the view model
+                    observeViewModel();
+                }
+                resetAdapterData();
+            });
+        });
     }
 
     @Override
