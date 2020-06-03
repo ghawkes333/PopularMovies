@@ -1,7 +1,6 @@
 package com.appsalothelpgmail.popularmovies;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
 
@@ -14,7 +13,7 @@ import androidx.lifecycle.ViewModel;
 
 public class DetailViewModel extends ViewModel {
     private static final String TAG = DetailViewModel.class.getSimpleName();
-    private static MutableLiveData<MovieObject> mMovieObject;
+    private static LiveData<MovieObject> mMovieObject;
 
 
     @Nullable
@@ -29,20 +28,12 @@ public class DetailViewModel extends ViewModel {
         //Get the movie
         DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
         //While MovieRepository is pulling the movie from the background, create a placeholder movieObject
-        MovieObject object = new MovieObject(-1, null, null, null, null, null, null, null);
-        mMovieObject = new MutableLiveData<>();
-        mMovieObject.postValue(object);
-
+        MovieObject object = DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
+        mMovieObject = new MutableLiveData<>(object);
     }
 
     public LiveData<MovieObject> getMovieObject(){
         return mMovieObject;
-    }
-
-    public static void setMovieObject(LiveData<MovieObject> movieObject){
-        Log.d(TAG, "Setting movie object");
-        mMovieObject.postValue(movieObject.getValue());
-        Log.d(TAG, "Movieobject title is " + movieObject.getValue().getTitle());
     }
 
 }

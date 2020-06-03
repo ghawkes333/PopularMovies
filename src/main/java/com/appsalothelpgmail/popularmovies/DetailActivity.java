@@ -43,14 +43,21 @@ public class DetailActivity extends AppCompatActivity {
                 if (getIntent().hasExtra("KEY")) {
                     mId = getIntent().getIntExtra("KEY", -1);
 
-                    DetailViewModelFactory factory = null;
-                    factory = new DetailViewModelFactory(mDb, mId, DetailActivity.this, state);
-                    mModel = new ViewModelProvider(this, factory).get(DetailViewModel.class);
+                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            DetailViewModelFactory factory = null;
+                            factory = new DetailViewModelFactory(mDb, mId, DetailActivity.this, state);
+                            mModel = new ViewModelProvider(DetailActivity.this, factory).get(DetailViewModel.class);
 
 
-                    mModel.getMovieObject().observe(this, movieObject -> {
-                        populateUI(movieObject, mDb);
+                            runOnUiThread(() -> mModel.getMovieObject().observe(DetailActivity.this, movieObject -> {
+                                populateUI(movieObject, mDb);
+                            }));
+
+                        }
                     });
+
 
                     //Set up favorite button
                     mBinding.starIv.setOnClickListener(view -> onFavoriteButtonClicked(mModel.getMovieObject().getValue(), mId, mDb));
@@ -62,7 +69,6 @@ public class DetailActivity extends AppCompatActivity {
         }
 
     }
-
 
     private void populateUI(MovieObject movie, MovieDatabase db){
         if(movie == null) return;

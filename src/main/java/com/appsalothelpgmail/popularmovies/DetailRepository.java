@@ -1,6 +1,5 @@
 package com.appsalothelpgmail.popularmovies;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
@@ -15,20 +14,11 @@ import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
 
 import org.json.JSONObject;
 
-import java.util.List;
-
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
 public class DetailRepository {
     private static DetailRepository mInstance;
     private static String TAG = DetailRepository.class.getSimpleName();
 
     private static Context mContext;
-
-    private LiveData<MovieObject> mCurrentMovieObject;
-    private LiveData<List<MovieObject>> mMovieObjects;
-
 
     public static DetailRepository getInstance(Context context){
         if(mInstance != null){
@@ -44,48 +34,30 @@ public class DetailRepository {
     }
 
 
-    public void getSingleMovie(Context context, int id, String STATE){
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                MovieObject movie = null;
-                Log.d(TAG, "Running in background");
-                if (MovieDatabase.getInstance(context).movieDao().existsInDatabase(id) && STATE.equals(MainActivity.STATE_FAVORITE)) {
-                    //Pull from database
-                    mCurrentMovieObject = getMovieObjectFromDatabase(context, id);
+    public MovieObject getSingleMovie(Context context, int id, String STATE){
+        MovieObject movie = null;
+        Log.d(TAG, "Running in background");
+        if (MovieDatabase.getInstance(context).movieDao().existsInDatabase(id) && STATE.equals(MainActivity.STATE_FAVORITE)) {
+            //Pull from database
+            movie = getMovieObjectFromDatabase(context, id);
 
-                    Log.d(TAG, "Retrieved object");
+            Log.d(TAG, "Retrieved object");
 
-                } else if (STATE.equals(MainActivity.STATE_NETWORK)) {
-                    //Pull from network
-                    LiveData<MovieObject> movieObject = getMovieObjectFromNetwork(context, id);
-                    mCurrentMovieObject = movieObject;
-                } else{
-                    Log.e(TAG, "Error: cannot retrieve movie");
-                }
+        } else if (STATE.equals(MainActivity.STATE_NETWORK)) {
+            //Pull from network
+            movie = getMovieObjectFromNetwork(context, id);;
+        } else{
+            Log.e(TAG, "Error: cannot retrieve movie");
+        }
 
-
-
-
-                Activity activityContext = (Activity) context;
-                activityContext.runOnUiThread(new Runnable(){
-                    @Override
-                    public void run() {
-                        Log.d(TAG, "Alerting DetailViewModel");
-                        DetailViewModel.setMovieObject(mCurrentMovieObject);
-                    }
-                });
-            }
-        });
-
+        return movie;
     }
 
-    private LiveData<MovieObject> getMovieObjectFromDatabase(Context context, int id){
-        MovieObject movieObjectLiveData = MovieDatabase.getInstance(context).movieDao().queryMovie(id);
-        return new MutableLiveData<>(movieObjectLiveData);
+    private MovieObject getMovieObjectFromDatabase(Context context, int id){
+        return MovieDatabase.getInstance(context).movieDao().queryMovie(id);
     }
 
-    private LiveData<MovieObject> getMovieObjectFromNetwork(Context context, int id){
+    private MovieObject getMovieObjectFromNetwork(Context context, int id){
         String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
         if(NetworkUtils.isOnline()) {
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
@@ -101,7 +73,7 @@ public class DetailRepository {
                 MovieObject movieObject = JSONUtils.parseSingleJSON(object);
                 movieObject.setReviews(getReviews(context, id));
                 movieObject.setVideos(getVideos(context, id));
-                return new MutableLiveData<>(movieObject);
+                return movieObject;
             } catch (Exception e) {
                 e.printStackTrace();
             }
