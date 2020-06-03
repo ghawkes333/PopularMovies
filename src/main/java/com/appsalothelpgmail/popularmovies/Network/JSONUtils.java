@@ -50,24 +50,7 @@ public class JSONUtils {
         return (LiveData) objects;
     }
 
-
-    private static MovieObject parseSingleJSON(JSONObject object) throws JSONException{
-        int id;
-
-        String title = object.getString(TMDbValues.TMDB_RESPONSE_TITLE);
-        String overview = object.getString(TMDbValues.TMDB_RESPONSE_PLOT);
-        String releaseDate = object.getString(TMDbValues.TMDB_RESPONSE_RELEASE_DATE);
-        String voteAverage = object.getString(TMDbValues.TMDB_RESPONSE_VOTE_AVERAGE);
-
-        id = object.getInt(TMDbValues.TMDB_RESPONSE_MOVIE_ID);
-
-        String data = title + "\n" + id + "\n" + releaseDate + "\n" + voteAverage + "\n" + overview;
-        String imageURL = TMDbValues.TMDB_IMAGE_URL + object.getString(TMDbValues.TMDB_RESPONSE_MOVIE_IMAGE_PATH);
-
-        return new MovieObject(id, title, releaseDate, null, null, null, voteAverage, imageURL);
-    }
-
-    public static MutableLiveData<MovieObject> parseSingleJSONAsLiveData(JSONObject object) throws JSONException{
+    public static MovieObject parseSingleJSON(JSONObject object) throws JSONException{
         Log.d("JSONUtils", "Running parseSingleJSONAsLiveData");
 
         int id;
@@ -82,10 +65,7 @@ public class JSONUtils {
         String imageURL = TMDbValues.TMDB_IMAGE_URL + object.getString(TMDbValues.TMDB_RESPONSE_MOVIE_IMAGE_PATH);
 
         MovieObject movieObject = new MovieObject(id, title, releaseDate, overview, null, null, voteAverage, imageURL);
-        MutableLiveData<MovieObject> liveData = new MutableLiveData<MovieObject>();
-        liveData.postValue(movieObject);
-
-        return liveData;
+        return movieObject;
     }
 
     public static ArrayList<String> parseReviews(JSONObject object) throws JSONException{
