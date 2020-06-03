@@ -46,9 +46,11 @@ public class MainRepository {
 
     public LiveData<List<MovieObject>> getMovieObjects(String state, MovieDatabase db, Context context, String sort){
         if(state.equals(MainActivity.STATE_FAVORITE)){
-            return mMovieObjects = getMovieObjectsFromDatabase(db);
+            mMovieObjects = getMovieObjectsFromDatabase(db);
+            return mMovieObjects;
         } else if(state.equals(MainActivity.STATE_NETWORK)) {
-            return mMovieObjects = getMovieObjectsFromNetwork(context, sort);
+            mMovieObjects = getMovieObjectsFromNetwork(context, sort);
+            return mMovieObjects;
         } else {
             throw new InvalidParameterException("State is neither 'favorite' or 'network'");
         }

@@ -11,11 +11,12 @@ import android.view.MenuItem;
 import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
 
+import java.security.InvalidParameterException;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public static final String STATE_NETWORK = "network";
     public static String CURRENT_STATE = STATE_FAVORITE;
     private Menu mMenu;
+    private MainViewModel mViewModel;
+
+    private boolean isObserved = false;
 
     private String STATE_BUNDLE_KEY = "state";
     private String SORT_BUNDLE_KEY = "sort";
@@ -77,34 +81,52 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             @Override
             public void run() {
                 MainViewModelFactory factory;
-                if(CURRENT_STATE.equals(STATE_FAVORITE)){
-                    factory = new MainViewModelFactory(mDb, null, null);
-                } else{
-//                    setUpDataFromNetwork(getURL());
-                    Log.d(TAG, "Bug 1: Initating factory...");
-
-                    factory = new MainViewModelFactory(null, MainActivity.this, CURRENT_SORT);
-                }
+                factory = new MainViewModelFactory(mDb, MainActivity.this, CURRENT_SORT, CURRENT_STATE);
                 Log.d(TAG, "Bug 1: Factory initated. Initating provider...");
-                MainViewModel viewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
-//                MainViewModel mainViewModel = new MainViewModel(mDb, MainActivity.this, CURRENT_SORT);
+                mViewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
                 Log.d(TAG, "Bug 1: Provider intitated. Setting observe");
-                runOnUiThread(() -> viewModel.getMovieObjects(CURRENT_STATE, mDb, MainActivity.this, CURRENT_SORT).observe(MainActivity.this, new Observer<List<MovieObject>>() {
-                    @Override
-                    public void onChanged(List<MovieObject> movieObjects){
-                        Log.d(TAG, "Bug 1: MovieObjects changed");
-                        mMovieData = movieObjects;
-                        Log.d(TAG, "Bug 1: MovieObject[0] title is " + movieObjects.get(0).getTitle().toString());
-                        mMovieAdapter.setMovieData(mMovieData);
-                        Log.d(TAG, "Bug 1: MovieObjects changed. Data reset");
 
-                    }
+                if(!isObserved){
+                    //Set up observer
+                    runOnUiThread(() -> observeViewModel());
                 }
-
-                ));
-
             }
         });
+
+
+    }
+
+    private void observeViewModel(){
+        mViewModel.getMovieObjects().observe(MainActivity.this, movieObjects -> {
+            Log.d(TAG, "Bug 1: MovieObjects changed");
+            mMovieData = movieObjects;
+            Log.d(TAG, "Bug 1: MovieObject[0] title is " + movieObjects.get(0).getTitle().toString());
+            mMovieAdapter.setMovieData(mMovieData);
+            Log.d(TAG, "Bug 1: MovieObjects changed. Data reset");
+
+        });
+    }
+
+    private void resetAdapterData(){
+        Executor executor = null;
+        if(CURRENT_STATE.equals(STATE_FAVORITE)){
+            executor = AppExecutors.getInstance().diskIO();
+        } else if(CURRENT_STATE.equals(STATE_NETWORK)){
+            executor = AppExecutors.getInstance().networkIO();
+        } else {
+            throw new InvalidParameterException("CURRENT_STATE is neither favorite or network");
+        }
+
+        //Reset the adapter data
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                mViewModel.setState(CURRENT_STATE);
+                mViewModel.setSort(CURRENT_SORT);
+                mViewModel.resetMovieObjects();
+            }
+        });
+
 
     }
 
@@ -162,20 +184,24 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 else CURRENT_SORT = TMDbValues.TMDB_POPULAR;
 
                 setSortMenuTitle(CURRENT_SORT, item);
-                setUpLiveData();
+                resetAdapterData();
                 break;
             case R.id.mn_switch_mode:
+                //Set flags
                 if(CURRENT_STATE.equals(STATE_FAVORITE)){
                     CURRENT_STATE = STATE_NETWORK;
                     item.setTitle(R.string.menu_show_favorites);
                     mMenu.getItem(1).setVisible(true);
-                    setUpLiveData();
                 } else {
                     CURRENT_STATE = STATE_FAVORITE;
                     item.setTitle(R.string.menu_show_all);
                     mMenu.getItem(1).setVisible(false);
-                    setUpLiveData();
                 }
+                //Reset adapter
+                resetAdapterData();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + item.getItemId());
         }
         return super.onOptionsItemSelected(item);
     }

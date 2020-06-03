@@ -12,17 +12,24 @@ import androidx.lifecycle.ViewModel;
 
 public class MainViewModel extends ViewModel {
 
-    private MovieDatabase mDb;
     private String TAG = MainViewModel.class.getSimpleName();
-    private MutableLiveData<List<MovieObject>> mNetworkMovieObjects;
-    private MutableLiveData<List<MovieObject>> mDatabaseMovieObjects;
 
-    private LiveData<List<MovieObject>> mMovieObjects;
+    private MutableLiveData<List<MovieObject>> mMovieObjects;
+
+    private String mSort;
+    private String mState;
+    private MovieDatabase mDb;
+    private Context mContext;
 
 
     public MainViewModel(MovieDatabase db, Context context, String sort, String state) {
+        mDb = db;
+        mContext = context;
+        mSort = sort;
+        mState = state;
 
-        mMovieObjects = MainRepository.getInstance().getMovieObjects(state, db, context, sort);
+        mMovieObjects = new MutableLiveData<>();
+        mMovieObjects.postValue(MainRepository.getInstance().getMovieObjects(mState, mDb, mContext, mSort).getValue());
     }
 
     public LiveData<List<MovieObject>> getMovieObjects(){
@@ -30,8 +37,16 @@ public class MainViewModel extends ViewModel {
     }
 
 
-    public void setDb(MovieDatabase mDb) {
-        this.mDb = mDb;
+    public void setSort(String sort){
+        mSort = sort;
+    }
+
+    public void setState(String state){
+        mState = state;
+    }
+
+    public void resetMovieObjects(){
+        mMovieObjects.postValue(MainRepository.getInstance().getMovieObjects(mState, mDb, mContext, mSort).getValue());
     }
 
 

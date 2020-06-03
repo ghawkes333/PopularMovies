@@ -98,7 +98,7 @@ public class DetailRepository {
 
             try {
                 JSONObject object = future.get();
-                MovieObject movieObject = JSONUtils.parseSingleJSONAsLiveData(object).getValue();
+                MovieObject movieObject = JSONUtils.parseSingleJSON(object);
                 movieObject.setReviews(getReviews(context, id));
                 movieObject.setVideos(getVideos(context, id));
                 return new MutableLiveData<>(movieObject);
