@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, getNumColumns());
 
-        mMovieRecycler = (RecyclerView) findViewById(R.id.rv_movie);
+        mMovieRecycler = findViewById(R.id.rv_movie);
 
         mMovieRecycler.setLayoutManager(gridLayoutManager);
         mMovieRecycler.setHasFixedSize(true);
@@ -81,10 +81,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 if(!isObserved){
                     //Set up observer
                     runOnUiThread(() -> observeViewModel());
+
                 }
             }
         });
-
 
     }
 
@@ -103,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             mViewModel.setSort(CURRENT_SORT);
             mViewModel.resetMovieObjects();
         });
-
-
     }
 
     private void setUpViewModel(){
@@ -231,6 +229,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     protected void onResume() {
         super.onResume();
+        if(mViewModel == null){
+            getExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    setUpViewModel();
+                }
+            });
+        }
         mMovieAdapter.notifyDataSetChanged();
     }
 

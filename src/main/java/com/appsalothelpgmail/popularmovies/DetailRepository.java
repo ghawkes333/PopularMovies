@@ -41,7 +41,7 @@ public class DetailRepository {
 
         } else if (STATE.equals(MainActivity.STATE_NETWORK)) {
             //Pull from network
-            movie = getMovieObjectFromNetwork(context, id);;
+            movie = getMovieObjectFromNetwork(context, id);
         } else{
             Log.e(TAG, "Error: cannot retrieve movie");
         }

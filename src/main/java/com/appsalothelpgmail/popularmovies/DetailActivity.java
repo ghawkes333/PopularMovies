@@ -114,12 +114,12 @@ public class DetailActivity extends AppCompatActivity {
             String content = videos[i];
             ViewGroup row =  (ViewGroup) getLayoutInflater().inflate(R.layout.trailer_layout, mBinding.videosContainer, true);
             ConstraintLayout constraintLayout = (ConstraintLayout) row.getChildAt(i);
-            TextView textView = (TextView) constraintLayout.findViewById(R.id.trailer_link_tv);
+            TextView textView = constraintLayout.findViewById(R.id.trailer_link_tv);
             textView.setText(content);
 
             //Open trailer on click
-            constraintLayout.setOnClickListener((View.OnClickListener) view -> {
-                TextView linkTextview = (TextView) view.findViewById(R.id.trailer_link_tv);
+            constraintLayout.setOnClickListener(view -> {
+                TextView linkTextview = view.findViewById(R.id.trailer_link_tv);
                 String url = linkTextview.getText().toString();
                 Uri uri = Uri.parse(url);
                 Intent intent = new Intent();
