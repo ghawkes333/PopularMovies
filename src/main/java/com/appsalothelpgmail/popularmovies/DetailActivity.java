@@ -25,7 +25,6 @@ public class DetailActivity extends AppCompatActivity {
     private MovieDatabase mDb = null;
     private int mId = -1;
 
-    boolean isFavorite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +122,6 @@ public class DetailActivity extends AppCompatActivity {
                 TextView linkTextview = (TextView) view.findViewById(R.id.trailer_link_tv);
                 String url = linkTextview.getText().toString();
                 Uri uri = Uri.parse(url);
-                Log.d(TAG, uri.toString());
                 Intent intent = new Intent();
                 intent.setData(uri);
                 intent.setAction(Intent.ACTION_VIEW);
@@ -134,19 +132,16 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     private void onFavoriteButtonClicked(MovieObject movie, int id, MovieDatabase db){
-
+        //Check for a valid ID
         if(id != -1){
             AppExecutors.getInstance().diskIO().execute(() -> {
                 boolean existsInDb = db.movieDao().existsInDatabase(id);
 
+                //Add or remove from the database
                 if(existsInDb){
-                    Log.d(TAG, "Deleting ID " + id);
                     db.movieDao().deleteMovie(movie);
-                    Log.d(TAG, "Existing: " + db.movieDao().existsInDatabase(id));
                 } else{
                     db.movieDao().insertMovie(movie);
-                    Log.d(TAG, "Inserting ID " + id);
-                    Log.d(TAG, "Existing: " + db.movieDao().existsInDatabase(id));
                 }
 
                 runOnUiThread(() -> {

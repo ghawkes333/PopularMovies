@@ -12,8 +12,6 @@ import androidx.lifecycle.ViewModel;
 
 public class MainViewModel extends ViewModel {
 
-    private String TAG = MainViewModel.class.getSimpleName();
-
     private MutableLiveData<List<MovieObject>> mMovieObjects;
 
     private String mSort;

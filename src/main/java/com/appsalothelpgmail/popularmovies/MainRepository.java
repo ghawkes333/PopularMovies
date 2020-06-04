@@ -25,16 +25,14 @@ public class MainRepository {
     private static MainRepository mInstance;
     private static String TAG = MainRepository.class.getSimpleName();
 
-    private static Context mContext;
-
     private LiveData<List<MovieObject>> mMovieObjects;
 
-    public MainRepository() {
+    private MainRepository() {
 
     }
 
 
-    public static MainRepository getInstance(){
+    static MainRepository getInstance(){
         if(mInstance != null){
             return mInstance;
         } else {
@@ -44,7 +42,7 @@ public class MainRepository {
     }
 
 
-    public LiveData<List<MovieObject>> getMovieObjects(String state, MovieDatabase db, Context context, String sort){
+    LiveData<List<MovieObject>> getMovieObjects(String state, MovieDatabase db, Context context, String sort){
         if(state.equals(MainActivity.STATE_FAVORITE)){
             mMovieObjects = getMovieObjectsFromDatabase(db);
             return mMovieObjects;

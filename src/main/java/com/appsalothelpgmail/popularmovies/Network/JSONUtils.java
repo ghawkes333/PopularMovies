@@ -1,8 +1,6 @@
 package com.appsalothelpgmail.popularmovies.Network;
 
 
-import android.util.Log;
-
 import com.appsalothelpgmail.popularmovies.MovieObject;
 
 import org.json.JSONArray;
@@ -18,7 +16,6 @@ import androidx.lifecycle.MutableLiveData;
 public class JSONUtils {
 
     public static List<MovieObject> parseJSON(JSONObject object){
-        Log.d("JSONUtils", "Running parseJSON");
         ArrayList<MovieObject> objects = new ArrayList<MovieObject>();
         try{
             JSONArray results = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
@@ -33,8 +30,6 @@ public class JSONUtils {
     }
 
     public static LiveData<List<MovieObject>> parseJSONAsLiveData(JSONObject object){
-        Log.d("JSONUtils", "Running parseJSONAsLiveData");
-
         MutableLiveData<ArrayList<MovieObject>> objects = new MutableLiveData<>();
         try{
             JSONArray results = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
@@ -51,32 +46,23 @@ public class JSONUtils {
     }
 
     public static MovieObject parseSingleJSON(JSONObject object) throws JSONException{
-        Log.d("JSONUtils", "Running parseSingleJSONAsLiveData");
-
-        int id;
-
         String title = object.getString(TMDbValues.TMDB_RESPONSE_TITLE);
         String overview = object.getString(TMDbValues.TMDB_RESPONSE_PLOT);
         String releaseDate = object.getString(TMDbValues.TMDB_RESPONSE_RELEASE_DATE);
         String voteAverage = object.getString(TMDbValues.TMDB_RESPONSE_VOTE_AVERAGE);
 
-        id = object.getInt(TMDbValues.TMDB_RESPONSE_MOVIE_ID);
-
+        int id = object.getInt(TMDbValues.TMDB_RESPONSE_MOVIE_ID);
         String imageURL = TMDbValues.TMDB_IMAGE_URL + object.getString(TMDbValues.TMDB_RESPONSE_MOVIE_IMAGE_PATH);
 
-        MovieObject movieObject = new MovieObject(id, title, releaseDate, overview, null, null, voteAverage, imageURL);
-        return movieObject;
+        return new MovieObject(id, title, releaseDate, overview, null, null, voteAverage, imageURL);
     }
 
     public static ArrayList<String> parseReviews(JSONObject object) throws JSONException{
         JSONArray array = object.getJSONArray(TMDbValues.TMDB_RESPONSE_RESULTS);
         ArrayList<String> reviews = new ArrayList<String>();
         for(int i = 0; i < array.length(); i++){
-            Log.d("JSONUtils", array.getJSONObject(i).toString());
             reviews.add(array.getJSONObject(i).getString(TMDbValues.TMDB_RESPONSE_CONTENT));
-
         }
-
 
         return reviews;
     }

@@ -18,7 +18,6 @@ public class DetailRepository {
     private static DetailRepository mInstance;
     private static String TAG = DetailRepository.class.getSimpleName();
 
-    private static Context mContext;
 
     public static DetailRepository getInstance(Context context){
         if(mInstance != null){
@@ -36,12 +35,9 @@ public class DetailRepository {
 
     public MovieObject getSingleMovie(Context context, int id, String STATE){
         MovieObject movie = null;
-        Log.d(TAG, "Running in background");
         if (MovieDatabase.getInstance(context).movieDao().existsInDatabase(id) && STATE.equals(MainActivity.STATE_FAVORITE)) {
             //Pull from database
             movie = getMovieObjectFromDatabase(context, id);
-
-            Log.d(TAG, "Retrieved object");
 
         } else if (STATE.equals(MainActivity.STATE_NETWORK)) {
             //Pull from network
@@ -64,9 +60,7 @@ public class DetailRepository {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, future, future);
 
             RequestQueue requestQueue = Volley.newRequestQueue(context);
-
             requestQueue.add(jsonObjectRequest);
-
 
             try {
                 JSONObject object = future.get();
@@ -79,7 +73,6 @@ public class DetailRepository {
             }
         } else Log.w(TAG, "No internet");
 
-        Log.d(TAG, "getMovieObject returning null");
         return null;
     }
 
@@ -119,7 +112,6 @@ public class DetailRepository {
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, future, future);
-
             RequestQueue requestQueue = Volley.newRequestQueue(context);
             requestQueue.add(jsonObjectRequest);
 

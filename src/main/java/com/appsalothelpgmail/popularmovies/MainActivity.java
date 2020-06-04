@@ -3,7 +3,6 @@ package com.appsalothelpgmail.popularmovies;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,8 +26,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private String TAG = MainActivity.class.getSimpleName();
 
     private static List<MovieObject> mMovieData;
-    private static List<MovieObject> mFavoriteMovies;
-    private static List<MovieObject> mNetworkMovies;
 
     private RecyclerView mMovieRecycler;
     private MovieAdapter mMovieAdapter;
@@ -61,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             if(state != null) CURRENT_STATE = state;
             if(sort != null) CURRENT_SORT = sort;
         }
-        Log.d(TAG, "State is " + CURRENT_STATE);
 
         mDb = MovieDatabase.getInstance(this);
         mMovieAdapter = new MovieAdapter(mMovieData, this);
@@ -82,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             @Override
             public void run() {
                 setUpViewModel();
-                Log.d(TAG, "isObserved is " + isObserved);
                 if(!isObserved){
                     //Set up observer
                     runOnUiThread(() -> observeViewModel());
@@ -95,16 +90,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private void observeViewModel(){
         mObserver = movieObjects -> {
-            Log.d(TAG, "Bug 1: MovieObjects changed");
             mMovieData = movieObjects;
-            if(mViewModel == null) Log.d(TAG, "mViewModel is null");
-            else if(mViewModel.getMovieObjects() == null) Log.d(TAG, "mViewModel is not null. GetMovieObjects is null");
-            else if(mViewModel.getMovieObjects().getValue() == null) Log.d(TAG, "mViewModel is not null. GetMovieObjects.Value is null");
-            else if(mViewModel.getMovieObjects().getValue().size() < 1) Log.d(TAG, "mViewModel is not null. GetMovieObjects.length is " + mViewModel.getMovieObjects().getValue().size());
-            else Log.d(TAG, "mViewmodel nor getMovieObjects are null");
             mMovieAdapter.setMovieData(mMovieData);
-            Log.d(TAG, "Bug 1: MovieObjects changed. Data reset");
-
         };
         mViewModel.getMovieObjects().observe(MainActivity.this, mObserver);
     }
@@ -136,8 +123,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
 
 
-    //Adapted from https://stackoverflow.com/questions/1016896/how-to-get-screen-dimensions-as-pixels-in-android
-    //April 27, 2020
+    /*Adapted from https://stackoverflow.com/questions/1016896/how-to-get-screen-dimensions-as-pixels-in-android
+    *April 27, 2020
+    */
     private int getScreenWidth(){
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -146,22 +134,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         return size.x;
     }
 
-
-
-
-
-
     @Override
     public void onMovieItemClick(int clickedItemIndex) {
-        Log.d("MainActivity", mMovieData.toString());
-
+        //Go to DetailActivity
         int id = mMovieData.get(clickedItemIndex).getId();
         Intent intentToDetails = new Intent(MainActivity.this, DetailActivity.class);
         intentToDetails.putExtra("KEY", id);
         intentToDetails.putExtra(Intent.EXTRA_TEXT, CURRENT_STATE);
         startActivity(intentToDetails);
-
-
     }
 
 
@@ -218,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private void setSortMenuTitle(String sort, MenuItem item){
         int titleId;
-
         if(sort.equals(TMDbValues.TMDB_POPULAR)) titleId = R.string.sort_menu_title_pop;
         else titleId = R.string.sort_menu_title_top;
 

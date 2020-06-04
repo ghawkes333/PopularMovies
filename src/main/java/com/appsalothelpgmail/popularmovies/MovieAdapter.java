@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder>{
 
     private final String TAG = MovieAdapter.class.toString();
-    private String mImageLink;
     private List<MovieObject> mMovieData;
     private MovieItemClickListener mMovieItemClickListener;
 
