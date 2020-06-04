@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+
+    <string name="sort_pop">Change Sort To Highest Popularity</string>
+    <string name="sort_rating">Change Sort To Highest Rating</string>
+
+    <string name="about_tmdb_attribute">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
+    <string name="no_internet">No internet connection</string>
+
+    <!--    Menu Strings   -->
+    <string name="menu_about">About</string>
+    <string name="menu_sort">Sort</string>
+    <string name="sort_menu_title_pop">Sort By Popularity</string>
+    <string name="sort_menu_title_top">Sort By Top Rated</string>
+    <string name="menu_show_all">All Movies</string>
+    <string name="menu_show_favorites">Favorites</string>
+
+<!--    Detail Strings -->
+    <string name="trailers">Trailers</string>
+    <string name="play_button_content_description">Play Button</string>
+    <string name="reviews_label">Reviews</string>
+</resources>
