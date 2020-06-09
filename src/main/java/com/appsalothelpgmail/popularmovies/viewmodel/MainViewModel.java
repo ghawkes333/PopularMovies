@@ -1,11 +1,15 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.viewmodel;
 
 import android.app.Activity;
 import android.content.Context;
 import android.widget.Toast;
 
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.repository.MainRepository;
+import com.appsalothelpgmail.popularmovies.R;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
@@ -29,7 +33,10 @@ public class MainViewModel extends ViewModel {
         mState = state;
 
         mMovieObjects = new MutableLiveData<>();
-        mMovieObjects.postValue(MainRepository.getInstance().getMovieObjects(mState, mDb, mContext, mSort).getValue());
+        List<MovieObject> blank = new ArrayList<>();
+        blank.add(new MovieObject(-1, null, null, null, null, null, null, ""));
+        mMovieObjects.postValue(blank);
+//        mMovieObjects.postValue(MainRepository.getInstance().getMovieObjects().getValue());
 
     }
 
@@ -47,7 +54,7 @@ public class MainViewModel extends ViewModel {
     }
 
     public void resetMovieObjects(){
-        LiveData<List<MovieObject>> movieObjects = MainRepository.getInstance().getMovieObjects(mState, mDb, mContext, mSort);
+        LiveData<List<MovieObject>> movieObjects = MainRepository.getInstance().getMovieObjects();
         if(movieObjects != null)
             mMovieObjects.postValue(movieObjects.getValue());
         else {

@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.view.adapter;
 
 
 import android.content.Context;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.appsalothelpgmail.popularmovies.R;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

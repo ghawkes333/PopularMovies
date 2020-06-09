@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.service.repository;
 
 import android.content.Context;
 import android.util.Log;
@@ -7,10 +7,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
-import com.appsalothelpgmail.popularmovies.Network.JSONUtils;
-import com.appsalothelpgmail.popularmovies.Network.NetworkUtils;
-import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
+import com.appsalothelpgmail.popularmovies.States;
+import com.appsalothelpgmail.popularmovies.network.JSONUtils;
+import com.appsalothelpgmail.popularmovies.network.NetworkUtils;
+import com.appsalothelpgmail.popularmovies.network.TMDbValues;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 
 import org.json.JSONObject;
 
@@ -18,7 +20,6 @@ import java.security.InvalidParameterException;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 //Note: Should be used in a background thread
 public class MainRepository {
@@ -32,7 +33,7 @@ public class MainRepository {
     }
 
 
-    static MainRepository getInstance(){
+    public static MainRepository getInstance(){
         if(mInstance != null){
             return mInstance;
         } else {
@@ -41,12 +42,17 @@ public class MainRepository {
         return mInstance;
     }
 
+    public LiveData<List<MovieObject>> getMovieObjects(){
+        return mMovieObjects;
+    }
 
-    LiveData<List<MovieObject>> getMovieObjects(String state, MovieDatabase db, Context context, String sort){
-        if(state.equals(MainActivity.STATE_FAVORITE)){
+    public LiveData<List<MovieObject>> setMovieObjects(String state, MovieDatabase db, Context context, String sort){
+        if(state.equals(States.STATE_FAVORITE)){
             mMovieObjects = getMovieObjectsFromDatabase(db);
+            Log.d(TAG, "Getting movies from DB");
             return mMovieObjects;
-        } else if(state.equals(MainActivity.STATE_NETWORK)) {
+        } else if(state.equals(States.STATE_NETWORK)) {
+            Log.d(TAG, "Getting movies from network");
             mMovieObjects = getMovieObjectsFromNetwork(context, sort);
             return mMovieObjects;
         } else {
@@ -55,8 +61,8 @@ public class MainRepository {
     }
 
     private LiveData<List<MovieObject>> getMovieObjectsFromDatabase(MovieDatabase db){
-        List<MovieObject> movieObjects = db.movieDao().queryEntireDatabase();
-        return new MutableLiveData<>(movieObjects);
+        LiveData<List<MovieObject>> movieObjects = db.movieDao().queryEntireDatabase();
+        return movieObjects;
     }
 
     private LiveData<List<MovieObject>> getMovieObjectsFromNetwork(Context context, String sort){

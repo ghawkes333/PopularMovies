@@ -1,6 +1,6 @@
-package com.appsalothelpgmail.popularmovies.Data;
+package com.appsalothelpgmail.popularmovies.service.data;
 
-import com.appsalothelpgmail.popularmovies.MovieObject;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 
 import java.util.List;
 

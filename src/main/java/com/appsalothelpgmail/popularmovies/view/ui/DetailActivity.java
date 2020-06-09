@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.view.ui;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -8,13 +8,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.AppExecutors;
+import com.appsalothelpgmail.popularmovies.R;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.databinding.ActivityDetailBinding;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
+import com.appsalothelpgmail.popularmovies.viewmodel.DetailViewModel;
+import com.appsalothelpgmail.popularmovies.viewmodel.DetailViewModelFactory;
 import com.squareup.picasso.Picasso;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 public class DetailActivity extends AppCompatActivity {
@@ -42,20 +48,17 @@ public class DetailActivity extends AppCompatActivity {
                 if (getIntent().hasExtra("KEY")) {
                     mId = getIntent().getIntExtra("KEY", -1);
 
-                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            DetailViewModelFactory factory = null;
-                            factory = new DetailViewModelFactory(mDb, mId, DetailActivity.this, state);
-                            mModel = new ViewModelProvider(DetailActivity.this, factory).get(DetailViewModel.class);
+                    DetailViewModelFactory factory = null;
+                    factory = new DetailViewModelFactory(mDb, mId, DetailActivity.this, state);
+                    mModel = new ViewModelProvider(DetailActivity.this, factory).get(DetailViewModel.class);
 
 
-                            runOnUiThread(() -> mModel.getMovieObject().observe(DetailActivity.this, movieObject -> {
-                                populateUI(movieObject, mDb);
-                            }));
-
-                        }
+                    mModel.getMovieObject().observe(DetailActivity.this, movieObject -> {
+                        populateUI(movieObject, mDb);
                     });
+
+                    LiveData<MovieObject> testMovieObjects = mDb.movieDao().queryMovie(mId);
+                    Log.d(TAG, "Got test");
 
 
                     //Set up favorite button

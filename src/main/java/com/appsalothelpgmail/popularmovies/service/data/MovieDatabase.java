@@ -1,8 +1,8 @@
-package com.appsalothelpgmail.popularmovies.Data;
+package com.appsalothelpgmail.popularmovies.service.data;
 
 import android.content.Context;
 
-import com.appsalothelpgmail.popularmovies.MovieObject;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 
 import androidx.room.Database;
 import androidx.room.Room;

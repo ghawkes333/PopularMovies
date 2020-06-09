@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.service.model;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

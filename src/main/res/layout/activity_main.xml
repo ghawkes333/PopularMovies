@@ -6,7 +6,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.appsalothelpgmail.popularmovies.MainActivity">
+        tools:context="com.appsalothelpgmail.popularmovies.view.ui.MainActivity">
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"

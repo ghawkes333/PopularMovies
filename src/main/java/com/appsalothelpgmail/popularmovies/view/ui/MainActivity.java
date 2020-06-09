@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.view.ui;
 
 import android.content.Intent;
 import android.graphics.Point;
@@ -7,8 +7,15 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
-import com.appsalothelpgmail.popularmovies.Network.TMDbValues;
+import com.appsalothelpgmail.popularmovies.AppExecutors;
+import com.appsalothelpgmail.popularmovies.R;
+import com.appsalothelpgmail.popularmovies.States;
+import com.appsalothelpgmail.popularmovies.network.TMDbValues;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
+import com.appsalothelpgmail.popularmovies.view.adapter.MovieAdapter;
+import com.appsalothelpgmail.popularmovies.viewmodel.MainViewModel;
+import com.appsalothelpgmail.popularmovies.viewmodel.MainViewModelFactory;
 
 import java.security.InvalidParameterException;
 import java.util.List;
@@ -30,9 +37,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private RecyclerView mMovieRecycler;
     private MovieAdapter mMovieAdapter;
     private MovieDatabase mDb;
-    public static final String STATE_FAVORITE = "favorite";
-    public static final String STATE_NETWORK = "network";
-    public static String CURRENT_STATE = STATE_FAVORITE;
+
+    public static String CURRENT_STATE = States.STATE_FAVORITE;
     private Menu mMenu;
     private MainViewModel mViewModel;
     private Observer<List<MovieObject>> mObserver;
@@ -74,17 +80,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     private void setUpLiveData(){
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                setUpViewModel();
-                if(!isObserved){
-                    //Set up observer
-                    runOnUiThread(() -> observeViewModel());
+        setUpViewModel();
+        if(!isObserved){
+            //Set up observer
+            runOnUiThread(() -> observeViewModel());
 
-                }
-            }
-        });
+        }
 
     }
 
@@ -176,12 +177,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 break;
             case R.id.mn_switch_mode:
                 //Set flags
-                if(CURRENT_STATE.equals(STATE_FAVORITE)){
-                    CURRENT_STATE = STATE_NETWORK;
+                if(CURRENT_STATE.equals(States.STATE_FAVORITE)){
+                    CURRENT_STATE = States.STATE_NETWORK;
                     item.setTitle(R.string.menu_show_favorites);
                     mMenu.getItem(1).setVisible(true);
                 } else {
-                    CURRENT_STATE = STATE_FAVORITE;
+                    CURRENT_STATE = States.STATE_FAVORITE;
                     item.setTitle(R.string.menu_show_all);
                     mMenu.getItem(1).setVisible(false);
                 }
@@ -203,9 +204,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     }
 
     private Executor getExecutor(){
-        if(CURRENT_STATE.equals(STATE_NETWORK)){
+        if(CURRENT_STATE.equals(States.STATE_NETWORK)){
             return AppExecutors.getInstance().networkIO();
-        } else if(CURRENT_STATE.equals(STATE_FAVORITE)){
+        } else if(CURRENT_STATE.equals(States.STATE_FAVORITE)){
             return AppExecutors.getInstance().diskIO();
         } else{
             throw new InvalidParameterException("State is neither favorite nor network");
@@ -216,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         mMenu = menu;
-        if(CURRENT_STATE.equals(STATE_NETWORK)){
+        if(CURRENT_STATE.equals(States.STATE_NETWORK)){
             mMenu.getItem(1).setVisible(true);
             mMenu.getItem(2).setTitle(R.string.menu_show_favorites);
         } else {

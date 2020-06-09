@@ -1,4 +1,4 @@
-package com.appsalothelpgmail.popularmovies.Network;
+package com.appsalothelpgmail.popularmovies.network;
 
 import java.io.IOException;
 

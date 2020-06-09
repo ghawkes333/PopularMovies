@@ -12,14 +12,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".AboutActivity"
-            android:parentActivityName=".MainActivity"
+        <activity android:name=".view.ui.AboutActivity"
+            android:parentActivityName=".view.ui.MainActivity"
             android:launchMode="singleTop"/>
         <activity
-            android:name=".DetailActivity"
-            android:parentActivityName=".MainActivity"
+            android:name=".view.ui.DetailActivity"
+            android:parentActivityName=".view.ui.MainActivity"
             android:launchMode="singleTask"/>
-        <activity android:name=".MainActivity">
+        <activity android:name=".view.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

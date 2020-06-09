@@ -1,6 +1,8 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.view.ui;
 
 import android.os.Bundle;
+
+import com.appsalothelpgmail.popularmovies.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 

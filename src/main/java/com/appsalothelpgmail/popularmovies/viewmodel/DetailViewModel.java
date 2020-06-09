@@ -1,11 +1,12 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.viewmodel;
 
 import android.content.Context;
 
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
+import com.appsalothelpgmail.popularmovies.service.repository.DetailRepository;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class DetailViewModel extends ViewModel {
@@ -15,9 +16,9 @@ public class DetailViewModel extends ViewModel {
     public DetailViewModel(MovieDatabase db, int movieId, Context context, String state){
         //Get the movie
         DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
-        //While MovieRepository is pulling the movie from the background, create a placeholder movieObject
-        MovieObject object = DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
-        mMovieObject = new MutableLiveData<>(object);
+
+        LiveData<MovieObject> object = DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
+        mMovieObject = object;
     }
 
     public LiveData<MovieObject> getMovieObject(){

@@ -1,7 +1,7 @@
-package com.appsalothelpgmail.popularmovies.Network;
+package com.appsalothelpgmail.popularmovies.network;
 
 
-import com.appsalothelpgmail.popularmovies.MovieObject;
+import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -1,8 +1,8 @@
-package com.appsalothelpgmail.popularmovies;
+package com.appsalothelpgmail.popularmovies.viewmodel;
 
 import android.content.Context;
 
-import com.appsalothelpgmail.popularmovies.Data.MovieDatabase;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
