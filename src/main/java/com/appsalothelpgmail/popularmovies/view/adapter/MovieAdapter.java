@@ -39,8 +39,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        if(mMovieData.get(position).getImageURL().isEmpty()) Log.i(TAG, "Empty image URL at position" + position);
-         else Picasso.get().load(mMovieData.get(position).getImageURL()).into(holder.mMovieImageView);
+        if(mMovieData.get(position) == null || mMovieData.get(position).getImageURL() == null) Log.v(TAG, "Null object or image URL at position" + position);
+        else if(mMovieData.get(position).getImageURL().isEmpty()) Log.v(TAG, "Empty image URL at position" + position);
+        else Picasso.get().load(mMovieData.get(position).getImageURL()).into(holder.mMovieImageView);
     }
 
     @Override

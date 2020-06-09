@@ -45,6 +45,10 @@ public class MovieObject {
         this.mImageURL = mImageURL;
     }
 
+    public MovieObject() {
+        //Empty constructor
+    }
+
     public String getTitle() {
         return mTitle;
     }

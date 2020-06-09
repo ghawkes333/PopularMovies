@@ -1,43 +1,33 @@
 package com.appsalothelpgmail.popularmovies.viewmodel;
 
-import android.app.Activity;
 import android.content.Context;
-import android.widget.Toast;
 
-import com.appsalothelpgmail.popularmovies.service.repository.MainRepository;
-import com.appsalothelpgmail.popularmovies.R;
 import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
+import com.appsalothelpgmail.popularmovies.service.repository.ProjectRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class MainViewModel extends ViewModel {
 
-    private MutableLiveData<List<MovieObject>> mMovieObjects;
+    private LiveData<List<MovieObject>> mMovieObjects;
 
     private String mSort;
     private String mState;
-    private MovieDatabase mDb;
     private Context mContext;
+
+    private static final String TAG = MainViewModel.class.getSimpleName();
 
 
     public MainViewModel(MovieDatabase db, Context context, String sort, String state) {
-        mDb = db;
         mContext = context;
         mSort = sort;
         mState = state;
 
-        mMovieObjects = new MutableLiveData<>();
-        List<MovieObject> blank = new ArrayList<>();
-        blank.add(new MovieObject(-1, null, null, null, null, null, null, ""));
-        mMovieObjects.postValue(blank);
-//        mMovieObjects.postValue(MainRepository.getInstance().getMovieObjects().getValue());
-
+        setUpMovieObjects();
     }
 
     public LiveData<List<MovieObject>> getMovieObjects(){
@@ -47,26 +37,16 @@ public class MainViewModel extends ViewModel {
 
     public void setSort(String sort){
         mSort = sort;
+        setUpMovieObjects();
     }
 
     public void setState(String state){
         mState = state;
+        setUpMovieObjects();
     }
 
-    public void resetMovieObjects(){
-        LiveData<List<MovieObject>> movieObjects = MainRepository.getInstance().getMovieObjects();
-        if(movieObjects != null)
-            mMovieObjects.postValue(movieObjects.getValue());
-        else {
-            //No internet
-            Activity activity = (Activity) mContext;
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(mContext, R.string.no_internet, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
+    private void setUpMovieObjects(){
+        mMovieObjects = ProjectRepository.getInstance().getMovieObjectList(mContext, mState, mSort);
     }
 
 

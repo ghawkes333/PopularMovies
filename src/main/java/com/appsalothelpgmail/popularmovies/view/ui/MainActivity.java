@@ -7,7 +7,6 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.appsalothelpgmail.popularmovies.AppExecutors;
 import com.appsalothelpgmail.popularmovies.R;
 import com.appsalothelpgmail.popularmovies.States;
 import com.appsalothelpgmail.popularmovies.network.TMDbValues;
@@ -17,9 +16,7 @@ import com.appsalothelpgmail.popularmovies.view.adapter.MovieAdapter;
 import com.appsalothelpgmail.popularmovies.viewmodel.MainViewModel;
 import com.appsalothelpgmail.popularmovies.viewmodel.MainViewModelFactory;
 
-import java.security.InvalidParameterException;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             if(sort != null) CURRENT_SORT = sort;
         }
 
-        mDb = MovieDatabase.getInstance(this);
+        mDb = MovieDatabase.getInstance(this.getApplicationContext());
         mMovieAdapter = new MovieAdapter(mMovieData, this);
 
 
@@ -81,12 +78,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private void setUpLiveData(){
         setUpViewModel();
-        if(!isObserved){
-            //Set up observer
-            runOnUiThread(() -> observeViewModel());
-
-        }
-
+        //Set up observer
+        observeViewModel();
     }
 
     private void observeViewModel(){
@@ -94,20 +87,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             mMovieData = movieObjects;
             mMovieAdapter.setMovieData(mMovieData);
         };
+        if(mViewModel != null && mViewModel.getMovieObjects() != null && mViewModel.getMovieObjects().hasObservers()){
+            mViewModel.getMovieObjects().removeObservers(MainActivity.this);
+        }
         mViewModel.getMovieObjects().observe(MainActivity.this, mObserver);
     }
 
-    private void resetAdapterData(){
-        //Reset the adapter data
-        getExecutor().execute(() -> {
-            mViewModel.setState(CURRENT_STATE);
-            mViewModel.setSort(CURRENT_SORT);
-            mViewModel.resetMovieObjects();
-        });
-    }
-
     private void setUpViewModel(){
-        MainViewModelFactory factory = new MainViewModelFactory(mDb, MainActivity.this, CURRENT_SORT, CURRENT_STATE);
+        MainViewModelFactory factory = new MainViewModelFactory(mDb, getApplicationContext(), CURRENT_SORT, CURRENT_STATE);
         mViewModel = new ViewModelProvider(MainActivity.this, factory).get(MainViewModel.class);
     }
 
@@ -158,22 +145,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 if(CURRENT_SORT.equals(TMDbValues.TMDB_POPULAR)) CURRENT_SORT = TMDbValues.TMDB_TOP_RATED;
                 else CURRENT_SORT = TMDbValues.TMDB_POPULAR;
 
-                getExecutor().execute(() -> {
-                    if(mViewModel == null){
-                        //Reset the view model
-                        setUpViewModel();
-                    }
-
-                    runOnUiThread(() -> {
-                        if(mObserver == null || !isObserved){
-                            //Observe the view model
-                            observeViewModel();
-                        }
-                        resetAdapterData();
-                    });
-                });
-
                 setSortMenuTitle(CURRENT_SORT, item);
+
+                mViewModel.setSort(CURRENT_SORT);
                 break;
             case R.id.mn_switch_mode:
                 //Set flags
@@ -186,9 +160,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                     item.setTitle(R.string.menu_show_all);
                     mMenu.getItem(1).setVisible(false);
                 }
-                //Reset adapter
-                resetAdapterData();
+
+                mViewModel.setState(CURRENT_STATE);
                 break;
+
             default:
                 throw new IllegalStateException("Unexpected value: " + item.getItemId());
         }
@@ -201,16 +176,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         else titleId = R.string.sort_menu_title_top;
 
         item.setTitle(titleId);
-    }
-
-    private Executor getExecutor(){
-        if(CURRENT_STATE.equals(States.STATE_NETWORK)){
-            return AppExecutors.getInstance().networkIO();
-        } else if(CURRENT_STATE.equals(States.STATE_FAVORITE)){
-            return AppExecutors.getInstance().diskIO();
-        } else{
-            throw new InvalidParameterException("State is neither favorite nor network");
-        }
     }
 
     @Override
@@ -230,35 +195,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     protected void onResume() {
         super.onResume();
-        if(mViewModel == null){
-            getExecutor().execute(new Runnable() {
-                @Override
-                public void run() {
-                    setUpViewModel();
-                }
-            });
-        }
+
         mMovieAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-
-        getExecutor().execute(() -> {
-            if(mViewModel == null){
-                //Reset the view model
-                setUpViewModel();
-            }
-
-            runOnUiThread(() -> {
-                if(mObserver == null || !isObserved){
-                    //Observe the view model
-                    observeViewModel();
-                }
-                resetAdapterData();
-            });
-        });
     }
 
     @Override
