@@ -4,7 +4,7 @@ import android.content.Context;
 
 import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
-import com.appsalothelpgmail.popularmovies.service.repository.DetailRepository;
+import com.appsalothelpgmail.popularmovies.service.repository.ProjectRepository;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
@@ -14,10 +14,7 @@ public class DetailViewModel extends ViewModel {
 
 
     public DetailViewModel(MovieDatabase db, int movieId, Context context, String state){
-        //Get the movie
-        DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
-
-        LiveData<MovieObject> object = DetailRepository.getInstance(context).getSingleMovie(context, movieId, state);
+        LiveData<MovieObject> object = ProjectRepository.getInstance().getSingleMovie(context, movieId, state);
         mMovieObject = object;
     }
 

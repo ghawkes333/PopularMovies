@@ -4,11 +4,10 @@ import android.content.Context;
 import android.util.Log;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.Volley;
+import com.appsalothelpgmail.popularmovies.AppExecutors;
 import com.appsalothelpgmail.popularmovies.States;
 import com.appsalothelpgmail.popularmovies.network.JSONUtils;
 import com.appsalothelpgmail.popularmovies.network.NetworkUtils;
@@ -22,6 +21,7 @@ import org.json.JSONObject;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
@@ -29,10 +29,8 @@ import androidx.lifecycle.MutableLiveData;
 
 public class ProjectRepository {
 
-    private String mState;
-    private String mSort;
-
-    private static MediatorLiveData<List<MovieObject>> mMediatorMovieObjects;
+    private static MediatorLiveData<List<MovieObject>> mMediatorMovieObjectsList;
+    private static MediatorLiveData<MovieObject> mMediatorMovieObject;
 
     private static ProjectRepository mInstance;
 
@@ -43,7 +41,8 @@ public class ProjectRepository {
             return mInstance;
         } else {
             mInstance = new ProjectRepository();
-            mMediatorMovieObjects = new MediatorLiveData<>();
+            mMediatorMovieObjectsList = new MediatorLiveData<>();
+            mMediatorMovieObject = new MediatorLiveData<>();
         }
         return mInstance;
     }
@@ -59,15 +58,15 @@ public class ProjectRepository {
             getMovieObjectListFromNetwork(context, sort);
         } else throw new InvalidParameterException("The state is neither favorite nor network");
 
-        return mMediatorMovieObjects;
+        return mMediatorMovieObjectsList;
     }
 
 
     private void getMovieObjectListFromDatabase(Context context){
         LiveData<List<MovieObject>> movieObjectsDb = MovieDatabase.getInstance(context).movieDao().queryEntireDatabase();
 
-        mMediatorMovieObjects.addSource(movieObjectsDb, movieObjects -> {
-            mMediatorMovieObjects.setValue(movieObjects);
+        mMediatorMovieObjectsList.addSource(movieObjectsDb, movieObjects -> {
+            mMediatorMovieObjectsList.setValue(movieObjects);
         });
     }
 
@@ -89,8 +88,8 @@ public class ProjectRepository {
 
         } else Log.w(TAG, "No internet");
 
-        mMediatorMovieObjects.addSource(networkMovieList, movieObjects -> {
-            mMediatorMovieObjects.setValue(movieObjects);
+        mMediatorMovieObjectsList.addSource(networkMovieList, movieObjects -> {
+            mMediatorMovieObjectsList.setValue(movieObjects);
         });
     }
 
@@ -98,76 +97,74 @@ public class ProjectRepository {
 
 
     public LiveData<MovieObject> getSingleMovie(Context context, int id, String STATE){
-        LiveData<MovieObject> movie = null;
-        if (MovieDatabase.getInstance(context).movieDao().existsInDatabase(id) && STATE.equals(States.STATE_FAVORITE)) {
+        if (STATE.equals(States.STATE_FAVORITE)) {
             //Pull from database
-            movie = getMovieObjectFromDatabase(context, id);
+            getMovieObjectFromDatabase(context, id);
         } else if (STATE.equals(States.STATE_NETWORK)) {
             //Pull from network
-            movie = getMovieObjectFromNetwork(context, id);
+            getMovieObjectFromNetwork(context, id);
         } else{
             Log.e(TAG, "Error: cannot retrieve movie");
         }
 
-        return movie;
+        return mMediatorMovieObject;
     }
 
-    private LiveData<MovieObject> getMovieObjectFromDatabase(Context context, int id){
-        return MovieDatabase.getInstance(context).movieDao().queryMovie(id);
+    private void getMovieObjectFromDatabase(Context context, int id){
+        mMediatorMovieObject.addSource(MovieDatabase.getInstance(context).movieDao().queryMovie(id), (movieObject -> {
+            mMediatorMovieObject.setValue(movieObject);
+        }));
     }
 
-    private LiveData<MovieObject> getMovieObjectFromNetwork(Context context, int id){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        MovieObject movieObject = null;
-        if(NetworkUtils.isOnline()) {
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
+    private void getMovieObjectFromNetwork(Context context, int id){
+        //Start a background thread
+        AppExecutors.getInstance().networkIO().execute(() -> {
+            //Check if online
+            if(NetworkUtils.isOnline()) {
+                //Prepare to get movie details
+                String detailsUrl = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
+                RequestFuture<JSONObject> detailsFuture = RequestFuture.newFuture();
+                JsonObjectRequest detailsRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, detailsUrl, null, detailsFuture, detailsFuture);
 
-                    try {
-                        MovieObject object;
-                        object = JSONUtils.parseSingleJSON(response);
-                        object.setReviews(getReviews(context, id));
-                        object.setVideos(getVideos(context, id));
+                //Prepare to get movie reviews
+                String reviewsUrl = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_REVIEWS_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
+                RequestFuture<JSONObject> reviewsFuture = RequestFuture.newFuture();
+                JsonObjectRequest reviewsRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, reviewsUrl, null, reviewsFuture, reviewsFuture);
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                //Prepare to get movie trailers
+                String videoUrl = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_VIDEO_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
+                RequestFuture<JSONObject> videoFuture = RequestFuture.newFuture();
+                JsonObjectRequest videoRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, videoUrl, null, videoFuture, videoFuture);
 
+
+                //Add all requests to queue
+                RequestQueue requestQueue = Volley.newRequestQueue(context);
+                requestQueue.add(detailsRequest);
+                requestQueue.add(reviewsRequest);
+                requestQueue.add(videoRequest);
+
+                try {
+                    //Get each response
+                    JSONObject detailsResponse = detailsFuture.get();
+                    JSONObject reviewsResponse = reviewsFuture.get();
+                    JSONObject videoResponse = videoFuture.get();
+
+                    //Add to a movieObject
+                    MovieObject object;
+                    object = JSONUtils.parseSingleJSON(detailsResponse);
+                    object.setReviews(objectArrToStringArr(JSONUtils.parseReviews(reviewsResponse).toArray()));
+                    object.setVideos(objectArrToStringArr(JSONUtils.parseVideos(videoResponse).toArray()));
+
+                    //Set global movie object
+                    mMediatorMovieObject.postValue(object);
+                } catch (InterruptedException | ExecutionException | JSONException e) {
+                    e.printStackTrace();
                 }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
 
-                }
-            });
+            } else Log.w(TAG, "No internet");
 
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
+        });
 
-        } else Log.w(TAG, "No internet");
-        return new MutableLiveData<>(movieObject);
-    }
-
-    private String[] getReviews(Context context, int id){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_REVIEWS_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        if(NetworkUtils.isOnline()) {
-            RequestFuture<JSONObject> future = RequestFuture.newFuture();
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, future, future);
-
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
-
-            try {
-                JSONObject result = future.get();
-                return objectArrToStringArr(JSONUtils.parseReviews(result).toArray());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else Log.w(TAG, "No internet");
-
-
-        return null;
     }
 
     private String[] objectArrToStringArr(Object[] objects){
@@ -177,27 +174,5 @@ public class ProjectRepository {
         }
 
         return strings;
-    }
-
-    private String[] getVideos(Context context, int id){
-        String url = TMDbValues.TMDB_BASE_URL + id + TMDbValues.TMDB_VIDEO_PARAM + TMDbValues.TMDB_API_PARAM + TMDbValues.API_KEY;
-        if(NetworkUtils.isOnline()) {
-            RequestFuture<JSONObject> future = RequestFuture.newFuture();
-
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(JsonObjectRequest.Method.GET, url, null, future, future);
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
-            requestQueue.add(jsonObjectRequest);
-
-
-            try {
-                JSONObject result = future.get();
-                return objectArrToStringArr(JSONUtils.parseVideos(result).toArray());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else Log.w(TAG, "No internet");
-
-
-        return null;
     }
 }

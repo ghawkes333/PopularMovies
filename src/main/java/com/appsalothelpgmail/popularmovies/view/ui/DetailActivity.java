@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 import com.appsalothelpgmail.popularmovies.AppExecutors;
 import com.appsalothelpgmail.popularmovies.R;
-import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.databinding.ActivityDetailBinding;
+import com.appsalothelpgmail.popularmovies.service.data.MovieDatabase;
 import com.appsalothelpgmail.popularmovies.service.model.MovieObject;
 import com.appsalothelpgmail.popularmovies.viewmodel.DetailViewModel;
 import com.appsalothelpgmail.popularmovies.viewmodel.DetailViewModelFactory;
@@ -20,7 +20,6 @@ import com.squareup.picasso.Picasso;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.databinding.DataBindingUtil;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 public class DetailActivity extends AppCompatActivity {
@@ -56,9 +55,6 @@ public class DetailActivity extends AppCompatActivity {
                     mModel.getMovieObject().observe(DetailActivity.this, movieObject -> {
                         populateUI(movieObject, mDb);
                     });
-
-                    LiveData<MovieObject> testMovieObjects = mDb.movieDao().queryMovie(mId);
-                    Log.d(TAG, "Got test");
 
 
                     //Set up favorite button
